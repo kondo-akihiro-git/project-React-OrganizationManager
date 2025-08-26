@@ -3,23 +3,23 @@ import { useEffect, useState } from "react";
 import { Box, Paper, Typography } from "@mui/material";
 import { API_URL } from "../Base";
 
-interface Assignment {
-  assignment_id: number;
-  employee_id: number;
-  employee_name: string;
-  department_id: number;
-  department_name: string;
-  section_id: number;
-  section_name: string;
-  parent_section_id: number | null;
-  position_id: number | null;
-  position_name: string | null;
+interface Employee {
+  id: number;
+  name: string;
+  position: string;
 }
 
-const departmentColors: { [key: number]: string } = {
-  1: "#FF5733",
-  2: "#33C1FF",
-  3: "#33FF99",
+interface TreeNode {
+  name: string;
+  type: "department" | "section" | "position";
+  children?: TreeNode[];
+  employees?: Employee[];
+}
+
+const departmentColors: { [key: string]: string } = {
+  "営業部": "#FF5733",
+  "技術本部": "#33C1FF",
+  "管理部": "#33FF99",
 };
 
 const positionColors: { [key: string]: string } = {
@@ -39,38 +39,63 @@ const positionColors: { [key: string]: string } = {
   "役職不明": "#D3D3D3",
 };
 
-const departmentBgColors: { [key: number]: string } = {
-  1: "rgba(255, 87, 51, 0.1)",
-  2: "rgba(51, 193, 255, 0.1)",
-  3: "rgba(51, 255, 153, 0.1)",
-};
-
-const roleColumns: { [key: string]: number } = {
-  "課長 (マネージャー)": 0,
-  "係長 (サブマネージャー)": 1,
-  "主任 (チームリーダー)": 2,
-  "副主任 (サブリーダー)": 2,
-  "メンバー": 3,
-  "責任者": 3,
-  "PHP": 3,
-  "Java": 3,
-  "インフラ": 3,
-  "デザイン": 3,
-  "SE": 3,
-  "PG": 3,
-  "役職不明": 3,
-};
-
 export default function TestPage() {
-  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [treeData, setTreeData] = useState<TreeNode[]>([]);
 
   useEffect(() => {
     fetch(`${API_URL}/assignments`)
       .then((res) => res.json())
-      .then((data: Assignment[]) => setAssignments(data));
+      .then((data: TreeNode[]) => setTreeData(data));
   }, []);
 
-  const departments = [1, 2, 3];
+  const renderNode = (node: TreeNode, depth: number = 0) => {
+    const marginLeft = depth * 20;
+
+    return (
+      <Box key={`${node.type}-${node.name}`} sx={{ ml: marginLeft, mb: 1 }}>
+        {/* node自体 */}
+        <Paper
+          sx={{
+            p: 1,
+            border:
+              node.type === "department"
+                ? `2px solid ${departmentColors[node.name]}`
+                : "1px solid #ccc",
+            backgroundColor:
+              node.type === "position"
+                ? positionColors[node.name] || "#eee"
+                : "#f9f9f9",
+            borderRadius: 1,
+            minWidth: 150,
+          }}
+        >
+          <Typography variant="subtitle2">{node.name}</Typography>
+        </Paper>
+
+        {/* 従業員がいれば表示 */}
+        {node.employees &&
+          node.employees.map((emp) => (
+            <Paper
+              key={emp.id}
+              sx={{
+                p: 1,
+                border: "1px solid #aaa",
+                borderRadius: 1,
+                backgroundColor: "#fff",
+                ml: 2,
+                mt: 0.5,
+              }}
+            >
+              <Typography variant="body2">{emp.name}</Typography>
+              <Typography variant="caption">{emp.position}</Typography>
+            </Paper>
+          ))}
+
+        {/* childrenがいれば再帰描画 */}
+        {node.children && node.children.map((child) => renderNode(child, depth + 1))}
+      </Box>
+    );
+  };
 
   return (
     <Box sx={{ width: "100%", p: 2 }}>
@@ -78,62 +103,8 @@ export default function TestPage() {
         Assignments
       </Typography>
 
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        {departments.map((deptId) => {
-          const deptMembers = assignments.filter((d) => d.department_id === deptId);
-
-          const roleGroups: { [col: number]: Assignment[] } = {};
-          deptMembers.forEach((m) => {
-            const col = roleColumns[m.position_name || "役職不明"];
-            if (!roleGroups[col]) roleGroups[col] = [];
-            roleGroups[col].push(m);
-          });
-
-          return (
-            <Box
-              key={deptId}
-              sx={{
-                p: 2,
-                border: `2px solid ${departmentColors[deptId]}`,
-                borderRadius: 2,
-                backgroundColor: departmentBgColors[deptId],
-              }}
-            >
-              {/* 部署タイトル */}
-              <Typography variant="h6" align="center" fontWeight="bold" gutterBottom>
-                {deptMembers[0]?.department_name || `Department ${deptId}`}
-              </Typography>
-
-              {/* 役職ごとの横並び */}
-              <Box sx={{ display: "flex", gap: 2 }}>
-                {Object.entries(roleGroups).map(([colStr, members]) => (
-                  <Box
-                    key={colStr}
-                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-                  >
-                    {members.map((member) => (
-                      <Paper
-                        key={member.assignment_id}
-                        sx={{
-                          p: 1,
-                          border: `2px solid ${departmentColors[member.department_id]}`,
-                          backgroundColor: positionColors[member.position_name || "役職不明"],
-                          borderRadius: 1,
-                          textAlign: "center",
-                          minWidth: 150,
-                        }}
-                      >
-                        <Typography variant="subtitle2">{member.section_name}</Typography>
-                        <Typography variant="body2">{member.position_name || "N/A"}</Typography>
-                        <Typography variant="body2">{member.employee_name}</Typography>
-                      </Paper>
-                    ))}
-                  </Box>
-                ))}
-              </Box>
-            </Box>
-          );
-        })}
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+        {treeData.map((dept) => renderNode(dept))}
       </Box>
     </Box>
   );
