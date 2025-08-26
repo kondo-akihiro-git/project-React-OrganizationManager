@@ -1,7 +1,6 @@
 // frontend/src/pages/TestPage.tsx
 import { useEffect, useState } from "react";
-import ReactFlow, { Node, Edge, Background } from "reactflow";
-import "reactflow/dist/style.css";
+import { Box, Paper, Typography } from "@mui/material";
 import { API_URL } from "../Base";
 
 interface Assignment {
@@ -63,44 +62,26 @@ const roleColumns: { [key: string]: number } = {
 };
 
 export default function TestPage() {
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
 
   useEffect(() => {
     fetch(`${API_URL}/assignments`)
       .then((res) => res.json())
-      .then((data: Assignment[]) => {
-        const nodes: Node[] = [];
-        const edges: Edge[] = [];
+      .then((data: Assignment[]) => setAssignments(data));
+  }, []);
 
-        const columnWidth = 200;
-        const rowHeight = 80;
-        let yOffset = 0;
+  const departments = [1, 2, 3];
 
-        // 部署ごとに縦に並べる
-        const departments = [1, 2, 3];
-        departments.forEach((deptId) => {
-          const deptMembers = data.filter((d) => d.department_id === deptId);
+  return (
+    <Box sx={{ width: "100%", p: 2 }}>
+      <Typography variant="h4" gutterBottom>
+        Assignments
+      </Typography>
 
-          // 部署タイトルノード
-          nodes.push({
-            id: `dept-${deptId}`,
-            position: { x: 0, y: yOffset },
-            style: {
-              width: window.innerWidth - 40,
-              height: 40,
-              backgroundColor: departmentBgColors[deptId],
-              border: `2px solid ${departmentColors[deptId]}`,
-              borderRadius: 6,
-              textAlign: "center",
-              fontWeight: "bold",
-              paddingTop: 10,
-            },
-            data: { label: data.find(d => d.department_id === deptId)?.department_name || "" },
-          });
-          yOffset += 50;
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {departments.map((deptId) => {
+          const deptMembers = assignments.filter((d) => d.department_id === deptId);
 
-          // 役職ごとにグループ化
           const roleGroups: { [col: number]: Assignment[] } = {};
           deptMembers.forEach((m) => {
             const col = roleColumns[m.position_name || "役職不明"];
@@ -108,78 +89,52 @@ export default function TestPage() {
             roleGroups[col].push(m);
           });
 
-          // 横方向にマネ→サブ→主任/副主任→その他
-          Object.entries(roleGroups).forEach(([colStr, members]) => {
-            const col = Number(colStr);
-            let roleYOffset = yOffset;
+          return (
+            <Box
+              key={deptId}
+              sx={{
+                p: 2,
+                border: `2px solid ${departmentColors[deptId]}`,
+                borderRadius: 2,
+                backgroundColor: departmentBgColors[deptId],
+              }}
+            >
+              {/* 部署タイトル */}
+              <Typography variant="h6" align="center" fontWeight="bold" gutterBottom>
+                {deptMembers[0]?.department_name || `Department ${deptId}`}
+              </Typography>
 
-            members.forEach((member) => {
-              nodes.push({
-                id: String(member.assignment_id),
-                position: { x: col * columnWidth + 20, y: roleYOffset },
-                data: {
-                  label: (
-                    <div
-                      style={{
-                        padding: 6,
-                        border: `2px solid ${departmentColors[member.department_id]}`,
-                        backgroundColor: positionColors[member.position_name || "役職不明"],
-                        borderRadius: 6,
-                        minWidth: 150,
-                        textAlign: "center",
-                      }}
-                    >
-                      <div>{member.section_name}</div>
-                      <div>{member.position_name || "N/A"}</div>
-                      <div>{member.employee_name}</div>
-                    </div>
-                  ),
-                },
-              });
-
-              // edges: parent_section_id に従属
-              if (member.parent_section_id) {
-                const parent = deptMembers.find(d => d.section_id === member.parent_section_id);
-                if (parent) {
-                  edges.push({
-                    id: `e-${parent.assignment_id}-${member.assignment_id}`,
-                    source: String(parent.assignment_id),
-                    target: String(member.assignment_id),
-                    animated: true,
-                  });
-                }
-              }
-
-              roleYOffset += rowHeight;
-            });
-          });
-
-          // 部署の縦オフセット調整
-          yOffset += Math.max(...Object.values(roleGroups).map(g => g.length)) * rowHeight + 50;
-        });
-
-        setNodes(nodes);
-        setEdges(edges);
-      });
-  }, []);
-
-  return (
-    <div style={{ width: "100%", height: "100vh" }}>
-      <h2>Assignments Flow</h2>
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodesDraggable={false}
-        nodesConnectable={false}
-        zoomOnScroll={false}
-        zoomOnPinch={false}
-        panOnScroll={true}
-        panOnDrag={false}
-        minZoom={1}
-        maxZoom={1}
-      >
-        <Background />
-      </ReactFlow>
-    </div>
+              {/* 役職ごとの横並び */}
+              <Box sx={{ display: "flex", gap: 2 }}>
+                {Object.entries(roleGroups).map(([colStr, members]) => (
+                  <Box
+                    key={colStr}
+                    sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+                  >
+                    {members.map((member) => (
+                      <Paper
+                        key={member.assignment_id}
+                        sx={{
+                          p: 1,
+                          border: `2px solid ${departmentColors[member.department_id]}`,
+                          backgroundColor: positionColors[member.position_name || "役職不明"],
+                          borderRadius: 1,
+                          textAlign: "center",
+                          minWidth: 150,
+                        }}
+                      >
+                        <Typography variant="subtitle2">{member.section_name}</Typography>
+                        <Typography variant="body2">{member.position_name || "N/A"}</Typography>
+                        <Typography variant="body2">{member.employee_name}</Typography>
+                      </Paper>
+                    ))}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
+          );
+        })}
+      </Box>
+    </Box>
   );
 }
