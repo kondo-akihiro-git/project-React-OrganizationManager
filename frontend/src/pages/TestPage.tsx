@@ -1,11 +1,6 @@
 // frontend/src/pages/TestPage.tsx
 import { useEffect, useState } from "react";
-import ReactFlow, {
-  Background,
-  Controls,
-  Node,
-  Edge,
-} from "reactflow";
+import ReactFlow, { Node, Edge, Background } from "reactflow";
 import "reactflow/dist/style.css";
 import { API_URL } from "../Base";
 
@@ -22,7 +17,52 @@ interface Assignment {
   position_name: string | null;
 }
 
-function TestPage() {
+const departmentColors: { [key: number]: string } = {
+  1: "#FF5733",
+  2: "#33C1FF",
+  3: "#33FF99",
+};
+
+const positionColors: { [key: string]: string } = {
+  "部長": "#FFD700",
+  "課長 (マネージャー)": "#FFA500",
+  "係長 (サブマネージャー)": "#FF8C00",
+  "主任 (チームリーダー)": "#ADFF2F",
+  "副主任 (サブリーダー)": "#7FFF00",
+  "メンバー": "#87CEFA",
+  "責任者": "#FF69B4",
+  "PHP": "#C0C0C0",
+  "Java": "#D2691E",
+  "インフラ": "#8A2BE2",
+  "デザイン": "#FF1493",
+  "SE": "#00CED1",
+  "PG": "#7B68EE",
+  "役職不明": "#D3D3D3",
+};
+
+const departmentBgColors: { [key: number]: string } = {
+  1: "rgba(255, 87, 51, 0.1)",
+  2: "rgba(51, 193, 255, 0.1)",
+  3: "rgba(51, 255, 153, 0.1)",
+};
+
+const roleColumns: { [key: string]: number } = {
+  "課長 (マネージャー)": 0,
+  "係長 (サブマネージャー)": 1,
+  "主任 (チームリーダー)": 2,
+  "副主任 (サブリーダー)": 2,
+  "メンバー": 3,
+  "責任者": 3,
+  "PHP": 3,
+  "Java": 3,
+  "インフラ": 3,
+  "デザイン": 3,
+  "SE": 3,
+  "PG": 3,
+  "役職不明": 3,
+};
+
+export default function TestPage() {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
 
@@ -30,37 +70,116 @@ function TestPage() {
     fetch(`${API_URL}/assignments`)
       .then((res) => res.json())
       .then((data: Assignment[]) => {
-        // Node 作成
-        const createdNodes: Node[] = data.map((row, index) => ({
-          id: String(row.assignment_id),
-          position: { x: 150 * (index % 5), y: 100 * Math.floor(index / 5) },
-          data: { label: `${row.employee_name} (${row.position_name || "N/A"})` },
-        }));
+        const nodes: Node[] = [];
+        const edges: Edge[] = [];
 
-        // Edge 作成 (parent_section_id があれば線でつなぐ)
-        const createdEdges: Edge[] = data
-          .filter((row) => row.parent_section_id !== null)
-          .map((row) => ({
-            id: `e${row.parent_section_id}-${row.section_id}`,
-            source: String(row.parent_section_id),
-            target: String(row.section_id),
-            animated: true,
-          }));
+        const columnWidth = 200;
+        const rowHeight = 80;
+        let yOffset = 0;
 
-        setNodes(createdNodes);
-        setEdges(createdEdges);
+        // 部署ごとに縦に並べる
+        const departments = [1, 2, 3];
+        departments.forEach((deptId) => {
+          const deptMembers = data.filter((d) => d.department_id === deptId);
+
+          // 部署タイトルノード
+          nodes.push({
+            id: `dept-${deptId}`,
+            position: { x: 0, y: yOffset },
+            style: {
+              width: window.innerWidth - 40,
+              height: 40,
+              backgroundColor: departmentBgColors[deptId],
+              border: `2px solid ${departmentColors[deptId]}`,
+              borderRadius: 6,
+              textAlign: "center",
+              fontWeight: "bold",
+              paddingTop: 10,
+            },
+            data: { label: data.find(d => d.department_id === deptId)?.department_name || "" },
+          });
+          yOffset += 50;
+
+          // 役職ごとにグループ化
+          const roleGroups: { [col: number]: Assignment[] } = {};
+          deptMembers.forEach((m) => {
+            const col = roleColumns[m.position_name || "役職不明"];
+            if (!roleGroups[col]) roleGroups[col] = [];
+            roleGroups[col].push(m);
+          });
+
+          // 横方向にマネ→サブ→主任/副主任→その他
+          Object.entries(roleGroups).forEach(([colStr, members]) => {
+            const col = Number(colStr);
+            let roleYOffset = yOffset;
+
+            members.forEach((member) => {
+              nodes.push({
+                id: String(member.assignment_id),
+                position: { x: col * columnWidth + 20, y: roleYOffset },
+                data: {
+                  label: (
+                    <div
+                      style={{
+                        padding: 6,
+                        border: `2px solid ${departmentColors[member.department_id]}`,
+                        backgroundColor: positionColors[member.position_name || "役職不明"],
+                        borderRadius: 6,
+                        minWidth: 150,
+                        textAlign: "center",
+                      }}
+                    >
+                      <div>{member.section_name}</div>
+                      <div>{member.position_name || "N/A"}</div>
+                      <div>{member.employee_name}</div>
+                    </div>
+                  ),
+                },
+              });
+
+              // edges: parent_section_id に従属
+              if (member.parent_section_id) {
+                const parent = deptMembers.find(d => d.section_id === member.parent_section_id);
+                if (parent) {
+                  edges.push({
+                    id: `e-${parent.assignment_id}-${member.assignment_id}`,
+                    source: String(parent.assignment_id),
+                    target: String(member.assignment_id),
+                    animated: true,
+                  });
+                }
+              }
+
+              roleYOffset += rowHeight;
+            });
+          });
+
+          // 部署の縦オフセット調整
+          yOffset += Math.max(...Object.values(roleGroups).map(g => g.length)) * rowHeight + 50;
+        });
+
+        setNodes(nodes);
+        setEdges(edges);
       });
   }, []);
 
   return (
     <div style={{ width: "100%", height: "100vh" }}>
       <h2>Assignments Flow</h2>
-      <ReactFlow nodes={nodes} edges={edges}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        nodesDraggable={false}
+        nodesConnectable={false}
+        zoomOnScroll={false}
+        zoomOnPinch={false}
+        panOnScroll={true}
+        panOnDrag={false}
+        minZoom={1}
+        maxZoom={1}
+      >
         <Background />
-        <Controls />
       </ReactFlow>
     </div>
   );
 }
-
-export default TestPage;
