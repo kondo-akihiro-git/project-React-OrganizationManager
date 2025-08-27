@@ -37,45 +37,55 @@ export default function TestPage() {
             ? section_1.children.filter(c => c.type === "section_2")
             : [null]
           ).map((section_2, section_2_index) =>
-            
-//   (section_2 && section_2.children?.filter(c => c.type === "position_1") 
-//    ? section_2.children.filter(c => c.type === "position_1")
-//    : section_1.children?.filter(c => c.type === "position_1") ?? [null])
-// ).map((position_1, position_1_index) =>
+            (
+              (section_2?.children?.filter(c => c.type === "position_1").length
+                ? section_2.children.filter(c => c.type === "position_1")
+                : section_1.children?.filter(c => c.type === "position_1")?.length
+                  ? section_1.children.filter(c => c.type === "position_1")
+                  : [null]
+              )
+            ).map((position_1, position_1_index) =>
+              (
+                (position_1?.children?.filter(c => c.type === "position_2").length
+                  ? position_1.children.filter(c => c.type === "position_2")
+                  : section_2?.children?.filter(c => c.type === "position_2")?.length
+                    ? section_2.children.filter(c => c.type === "position_2")
+                    : section_1.children?.filter(c => c.type === "position_2")?.length
+                      ? section_1.children.filter(c => c.type === "position_2")
+                      : [null]
+                )
+              ).map((position_2, position_2_index) =>
 
 
 
+                <Box key={`${department_index}-${section_1_index}-${section_2_index}`} sx={{ display: "flex", gap: "0.5%" }}>
 
+                  {/* 部署 */}
+                  <Paper sx={{ visibility: section_1_index === 0 ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                    <Typography variant="subtitle1">{department.name}</Typography>
+                  </Paper>
 
+                  {/* 課1 */}
+                  <Paper sx={{ visibility: section_2_index === 0 ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                    <Typography variant="subtitle1">{section_1.name}</Typography>
+                  </Paper>
 
-              <Box key={`${department_index}-${section_1_index}-${section_2_index}`} sx={{ display: "flex", gap: "0.5%" }}>
+                  {/* 課2 */}
+                  <Paper sx={{ visibility: section_2?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                    <Typography variant="subtitle1">{section_2?.name ?? ""}</Typography>
+                  </Paper>
+                  <Paper sx={{ visibility: position_1?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                    <Typography variant="subtitle1">{position_1?.name}</Typography>
+                  </Paper>
+                  <Paper sx={{ flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                    <Typography variant="subtitle1">{position_2?.name}</Typography>
+                  </Paper>
+                  <Paper sx={{ flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                    <Typography variant="subtitle1">リーダー</Typography>
+                  </Paper>
+                </Box>
 
-                {/* 部署 */}
-                <Paper sx={{ visibility: section_1_index === 0 ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                  <Typography variant="subtitle1">{department.name}</Typography>
-                </Paper>
-
-                {/* 課1 */}
-                <Paper sx={{ visibility: section_2_index === 0 ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                  <Typography variant="subtitle1">{section_1.name}</Typography>
-                </Paper>
-
-                {/* 課2 */}
-                <Paper sx={{ visibility: section_2?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                  <Typography variant="subtitle1">{section_2?.name ?? ""}</Typography>
-                </Paper>
-                <Paper sx={{ flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                  <Typography variant="subtitle1">{}</Typography>
-                </Paper>
-                <Paper sx={{ flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                  <Typography variant="subtitle1">サブマネージャー</Typography>
-                </Paper>
-                <Paper sx={{ flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                  <Typography variant="subtitle1">リーダー</Typography>
-                </Paper>
-              </Box>
-
-            ))
+              ))))
       )
       }
     </Box>
