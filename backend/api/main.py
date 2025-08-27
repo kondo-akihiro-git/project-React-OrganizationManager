@@ -1,7 +1,7 @@
 # backend/api/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.services.assignment import get_all_assignments_service
+from api.service.assignment import get_assignment
 from config.settings import settings
 
 app = FastAPI()
@@ -16,5 +16,5 @@ app.add_middleware(
 )
 
 @app.get("/assignments")
-async def get_all_assignments():
-    return await get_all_assignments_service()
+async def assignment():
+    return await get_assignment()
