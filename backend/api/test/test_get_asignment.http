@@ -1,3 +1,3 @@
 ### Assignments 一覧取得
-GET http://localhost:8000/assignments
+GET http://localhost:8000/sales_assignment
 Accept: application/json

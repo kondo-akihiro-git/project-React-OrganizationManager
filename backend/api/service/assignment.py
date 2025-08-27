@@ -3,11 +3,24 @@ import json
 from db.connection.connection import get_connection, release_connection
 from typing import List, Dict, Any
 
-# position.json をロードして辞書化
-with open("db/json/position.json", "r", encoding="utf-8") as f:
-    POSITION_DICT = {p["name"]: p["level"] for p in json.load(f)}
+# sales_position.json をロードして辞書化
+with open("db/json/sales_position.json", "r", encoding="utf-8") as f:
+    POSITION_DICT = {p["id"]: {"name": p["name"], "level": p.get("level", "position_4")} for p in json.load(f)}
 
-async def get_assignment() -> List[Dict[str, Any]]:
+# 部署マスタをロード
+with open("db/json/all_department.json", "r", encoding="utf-8") as f:
+    DEPT_DICT = {d["id"]: d["name"] for d in json.load(f)}
+
+# 親セクション
+with open("db/json/sales_parent_section.json", "r", encoding="utf-8") as f:
+    PARENT_SECTION_DICT = {s["id"]: s["name"] for s in json.load(f)}
+
+# 子セクション
+with open("db/json/sales_child_section.json", "r", encoding="utf-8") as f:
+    CHILD_SECTION_DICT = {s["id"]: {"name": s["name"], "parent_id": s.get("parent_id")} for s in json.load(f)}
+
+
+async def get_sales_assignment() -> List[Dict[str, Any]]:
     conn = await get_connection()
     try:
         query = """
@@ -15,69 +28,56 @@ async def get_assignment() -> List[Dict[str, Any]]:
             a.id AS assignment_id,
             e.id AS employee_id,
             e.name AS employee_name,
-            a.department_name,
-            a.section_name,
-            a.position_name,
-            a.parent_employee_id
-        FROM assignments a
-        JOIN employees e ON a.employee_id = e.id
-        ORDER BY a.department_name, a.section_name, a.id;
+            a.department_id,
+            a.sales_parent_section_id,
+            a.sales_child_section_id,
+            a.sales_manager_id,
+            a.sales_submanager_id,
+            a.sales_leader_id,
+            a.sales_position_id
+        FROM sales_assignment a
+        JOIN employee e ON a.employee_id = e.id
+        ORDER BY a.id;
         """
         rows = await conn.fetch(query)
         assignments = [dict(row) for row in rows]
 
-        
+        # 事前に全社員をキャッシュしておく（名前を引く用）
+        emp_rows = await conn.fetch("SELECT id, name FROM employee;")
+        EMP_DICT = {r["id"]: r["name"] for r in emp_rows}
 
-        tree: List[Dict[str, Any]] = []
+        result: List[Dict[str, Any]] = []
 
-        # department -> section -> position -> employees
         for record in assignments:
-            dept_name = record["department_name"]
-            section_parts = record["section_name"].split(" / ")  # "第一営業課(PP/BP)/SES(PP)" など
-            section_1_name = section_parts[0].strip() if len(section_parts) > 0 else None
-            section_2_name = section_parts[1].strip() if len(section_parts) > 1 else None
-            pos_name = record["position_name"] or "役職不明"
-            emp_id = record["employee_id"]
-            emp_name = record["employee_name"]
+            dept_name = DEPT_DICT.get(record["department_id"], "不明")
+            section_parent_name = PARENT_SECTION_DICT.get(record["sales_parent_section_id"], "不明")
+            section_child_name = (
+                CHILD_SECTION_DICT.get(record["sales_child_section_id"], {}).get("name")
+                if record["sales_child_section_id"]
+                else None
+            )
+            pos_info = POSITION_DICT.get(
+                record["sales_position_id"], {"name": "役職不明", "level": "position_4"}
+            )
+            pos_name = pos_info["name"]
 
-            # department
-            dept_node = next((d for d in tree if d["name"] == dept_name), None)
-            if not dept_node:
-                dept_node = {"name": dept_name, "type": "department", "children": []}
-                tree.append(dept_node)
-
-            # section_1
-            section_1_node = next((s for s in dept_node["children"] if s["name"] == section_1_name), None)
-            if not section_1_node:
-                section_1_node = {"name": section_1_name, "type": "section_1", "children": []}
-                dept_node["children"].append(section_1_node)
-
-            # section_2（存在すれば）
-            if section_2_name:
-                section_2_node = next((s for s in section_1_node["children"] if s["name"] == section_2_name), None)
-                if not section_2_node:
-                    section_2_node = {"name": section_2_name, "type": "section_2", "children": []}
-                    section_1_node["children"].append(section_2_node)
-                parent_section_node = section_2_node
-            else:
-                parent_section_node = section_1_node
-
-            # position
-            pos_level = POSITION_DICT.get(pos_name, "position_4")
-            pos_node = next((p for p in parent_section_node["children"] if p["name"] == pos_name), None)
-            if not pos_node:
-                pos_node = {"name": pos_name, "type": pos_level, "employees": []}
-                parent_section_node["children"].append(pos_node)
-
-            # 社員を追加
-            pos_node["employees"].append({
-                "id": emp_id,
-                "name": emp_name,
+            emp_node = {
+                "id": record["employee_id"],
+                "name": record["employee_name"],
+                "department": dept_name,
+                "parent_section": section_parent_name,
+                "child_section": section_child_name,
                 "position": pos_name,
-                "parent_employee_id": record["parent_employee_id"]
-            })
+                "manager_id": record["sales_manager_id"],
+                "manager_name": EMP_DICT.get(record["sales_manager_id"]) if record["sales_manager_id"] else None,
+                "submanager_id": record["sales_submanager_id"],
+                "submanager_name": EMP_DICT.get(record["sales_submanager_id"]) if record["sales_submanager_id"] else None,
+                "leader_id": record["sales_leader_id"],
+                "leader_name": EMP_DICT.get(record["sales_leader_id"]) if record["sales_leader_id"] else None,
+            }
 
-        return tree
+            result.append(emp_node)
 
+        return result
     finally:
         await release_connection(conn)
