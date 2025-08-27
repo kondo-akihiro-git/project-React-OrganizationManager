@@ -46,77 +46,74 @@ export default function TestPage() {
               )
             ).map((position_1, position_1_index) =>
               (
-                (position_1?.children?.filter(c => c.type === "position_2").length
-                  ? position_1.children.filter(c => c.type === "position_2")
-                  : section_2?.children?.filter(c => c.type === "position_2")?.length
-                    ? section_2.children.filter(c => c.type === "position_2")
-                    : section_1.children?.filter(c => c.type === "position_2")?.length
-                      ? section_1.children.filter(c => c.type === "position_2")
-                      : [null]
-                )
-              ).map((position_2, position_2_index) =>
+                (position_1?.employees?.length ? position_1.employees.map(emp => ({ ...position_1, employee: emp })) : [position_1])
+              ).map((position_1_employee, position_1_employee_index) =>
                 (
-                  position_2?.children?.filter(c => c.type === "position_3").length
-                    ? position_2.children.filter(c => c.type === "position_3")
-                    : position_1?.children?.filter(c => c.type === "position_3")?.length
-                      ? position_1.children.filter(c => c.type === "position_3")
-                      : section_2?.children?.filter(c => c.type === "position_3")?.length
-                        ? section_2.children.filter(c => c.type === "position_3")
-                        : section_1.children?.filter(c => c.type === "position_3")?.length
-                          ? section_1.children.filter(c => c.type === "position_3")
-                          : [null]
-                ).map((position_3, position_3_index) =>
+                  (position_1?.children?.filter(c => c.type === "position_2").length
+                    ? position_1.children.filter(c => c.type === "position_2")
+                    : section_2?.children?.filter(c => c.type === "position_2")?.length
+                      ? section_2.children.filter(c => c.type === "position_2")
+                      : section_1.children?.filter(c => c.type === "position_2")?.length
+                        ? section_1.children.filter(c => c.type === "position_2")
+                        : [null]
+                  )
+                ).map((position_2, position_2_index) =>
+              (
+                (position_2?.employees?.length ? position_2.employees.map(emp => ({ ...position_2, employee: emp })) : [position_2])
+              ).map((position_2_employee, position_2_employee_index) =>
+
+                  (
+                    position_2?.children?.filter(c => c.type === "position_3").length
+                      ? position_2.children.filter(c => c.type === "position_3")
+                      : position_1?.children?.filter(c => c.type === "position_3")?.length
+                        ? position_1.children.filter(c => c.type === "position_3")
+                        : section_2?.children?.filter(c => c.type === "position_3")?.length
+                          ? section_2.children.filter(c => c.type === "position_3")
+                          : section_1.children?.filter(c => c.type === "position_3")?.length
+                            ? section_1.children.filter(c => c.type === "position_3")
+                            : [null]
+                  ).map((position_3, position_3_index) =>
+
+              (
+                (position_3?.employees?.length ? position_3.employees.map(emp => ({ ...position_3, employee: emp })) : [position_3])
+              ).map((position_3_employee, position_3_employee_index) =>
+
+                    <Box
+                      key={`${department_index}-${section_1_index}-${section_2_index}-${position_1_index}-${position_1_employee_index}-${position_2_index}-${position_2_employee_index}-${position_3_index}-${position_3_employee_index}`}
+                      sx={{ display: "flex", gap: "0.5%" }}
+                    >
 
 
+                      {/* 部署 */}
+                      <Paper sx={{ visibility: section_1_index === 0 && section_2_index === 0 && position_1_index === 0 && position_1_employee_index === 0 && position_2_index === 0 &&  position_2_employee_index === 0  && position_3_index === 0 && position_3_employee_index === 0 && department?.name  ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                        <Typography variant="subtitle1">{department.name}</Typography>
+                      </Paper>
 
-                  <Box
-                    key={`${department_index}-${section_1_index}-${section_2_index}-${position_1_index}-${position_2_index}-${position_3_index}`}
-                    sx={{ display: "flex", gap: "0.5%" }}
-                  >
+                      {/* 課1 */}
+                      <Paper sx={{ visibility: section_2_index === 0 && position_1_index === 0 && position_1_employee_index === 0 && position_2_index === 0 &&  position_2_employee_index === 0  && position_3_index === 0 && position_3_employee_index === 0 && section_1?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                        <Typography variant="subtitle1">{section_1.name}</Typography>
+                      </Paper>
 
+                      {/* 課2 */}
+                      <Paper sx={{ visibility: position_1_index === 0 && position_1_employee_index === 0 && position_2_index === 0 &&  position_2_employee_index === 0  && position_3_index === 0 && position_3_employee_index === 0 && section_2?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                        <Typography variant="subtitle1">{section_2?.name ?? ""}</Typography>
+                      </Paper>
+                      {/* マネージャー */}
+                      <Paper sx={{ visibility: position_2_index === 0 &&  position_2_employee_index === 0  && position_3_index === 0 && position_3_employee_index === 0 && position_1_employee?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                        <Typography variant="subtitle1">{position_1_employee?.name}</Typography>
+                      </Paper>
+                      {/* サブマネージャー */}
+                      <Paper sx={{ visibility: position_3_index === 0 && position_3_employee_index === 0  && position_2_employee?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                        <Typography variant="subtitle1">{position_2_employee?.name}</Typography>
+                      </Paper>
+                      {/* チームリーダー */}
+                      <Paper sx={{ visibility: position_3_employee?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
+                        <Typography variant="subtitle1">{position_3_employee?.name}</Typography>
+                      
+                      </Paper>
+                    </Box>
 
-                    {/* 部署 */}
-                    <Paper sx={{ visibility: section_1_index === 0 ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                      <Typography variant="subtitle1">{department.name}</Typography>
-                    </Paper>
-
-                    {/* 課1 */}
-                    <Paper sx={{ visibility: section_2_index === 0 ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                      <Typography variant="subtitle1">{section_1.name}</Typography>
-                    </Paper>
-
-                    {/* 課2 */}
-                    <Paper sx={{ visibility: section_2?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                      <Typography variant="subtitle1">{section_2?.name ?? ""}</Typography>
-                    </Paper>
-                    <Paper sx={{ visibility: position_1?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                      <Typography variant="subtitle1">{position_1?.name}</Typography>
-                      {position_1?.employees?.map(emp => (
-                        <Typography key={emp.id} variant="body2">
-                          {emp.position}：{emp.name}
-                        </Typography>
-
-                      ))}
-                    </Paper>
-                    <Paper sx={{ visibility: position_2?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                      <Typography variant="subtitle1">{position_2?.name}</Typography>
-                      {position_2?.employees?.map(emp => (
-                        <Typography key={emp.id} variant="body2">
-                          {emp.position}：{emp.name}
-                        </Typography>
-                      ))}
-                    </Paper>
-                    <Paper sx={{ visibility: position_3?.name ? "visible" : "hidden", flex: 1, p: 3, textAlign: "center", border: "1px solid #aaa", borderRadius: 1, backgroundColor: "#f0f0f0" }}>
-                      <Typography variant="subtitle1">{position_3?.name}</Typography>
-                      {position_3?.employees?.map(emp => (
-                        <Typography key={emp.id} variant="body2">
-                          {emp.position}：{emp.name}
-                        </Typography>
-                      ))}
-                    </Paper>
-                  </Box>
-
-                )))))
+                  ))))))))
       )
       }
     </Box>
