@@ -21,10 +21,10 @@ export default function TestPage() {
     <Paper
       key={section.section_id}
       elevation={3}
-      sx={{ margin: 2, padding: 3 }}
+      sx={{ margin: 2 ,padding: 5 }}
     >
       {/* セクション名 */}
-      <Typography sx={{ fontWeight: "bold" }}>{section.section_name}</Typography>
+      <Typography>{section.section_name}</Typography>
 
       {/* セクション直下の社員 */}
       {section.employees.map(displayEmployee)}
@@ -37,26 +37,36 @@ export default function TestPage() {
   // ============================
   // 社員情報を再帰的に表示する関数
   // ============================
-  const displayEmployee = (employee: Employee) => (
+  const displayEmployee = (employee: Employee) => {
+  // メンバーなら小さく、それ以外は通常サイズ
+  const isMember = employee.role === "メンバー";
+  const isManager = employee.role === "マネージャー";
+  const paddingSize = isMember ? 3 : 3;        // MUI の spacing 単位
+  const marginLeft = isMember ? "" : "15%";
+  const paddingHeight = isMember ? 1 : "";
+
+  return (
     <Paper
       key={employee.employee_id}
       elevation={3}
-      sx={{ margin: 1, padding: 3 }}
+      sx={{ margin: 1, padding: 5, paddingY: paddingHeight, marginLeft: marginLeft }} 
     >
       {/* 役職と名前 */}
       <Typography>{`${employee.position} ${employee.employee_name}`}</Typography>
 
-      {/* サブマネージャーやリーダーの下位社員を表示 */}
+      {/* サブマネージャーやリーダーの下位社員 */}
       {employee.children.map(displayEmployee)}
 
-      {/* リーダーの下のメンバーを表示 */}
+      {/* リーダーの下のメンバー */}
       {employee.employees.map(displayEmployee)}
     </Paper>
   );
+};
+
 
   return (
     <Box sx={{ padding: 2 }}>
-      <Typography variant="h5" sx={{ marginBottom: 2 }}>社員データ</Typography>
+      <Typography variant="h5" sx={{ marginBottom: 2 }}>営業部</Typography>
 
       {/* APIから取得したセクションを順番に表示 */}
       {allSections.map(displaySection)}

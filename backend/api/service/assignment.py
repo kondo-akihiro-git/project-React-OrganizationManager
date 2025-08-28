@@ -86,30 +86,32 @@ async def get_sales_assignment() -> List[Dict[str, Any]]:
             # ============================
             # 5. 従属関係を設定
             # ============================
+
             for employee_assignment in employees_in_this_section:
                 current_employee_id = employee_assignment["employee_id"]
                 current_node = employee_by_id[current_employee_id]
 
-                # まずリーダーIDを確認
                 leader_id = employee_assignment["leader_id"]
+                submanager_id = employee_assignment["submanager_id"]
+                manager_id = employee_assignment["manager_id"]
+
+                # 1. リーダー直属メンバーはリーダーの employees の先頭に追加
                 if leader_id and leader_id in employee_by_id:
-                    # この社員はリーダーの直下のメンバー
-                    employee_by_id[leader_id]["employees"].append(current_node)
-                else:
-                    # 次にサブマネージャーIDを確認
-                    submanager_id = employee_assignment["submanager_id"]
-                    if submanager_id and submanager_id in employee_by_id:
-                        # この社員はサブマネージャーの下に追加
-                        employee_by_id[submanager_id]["children"].append(current_node)
-                    else:
-                        # 次にマネージャーIDを確認
-                        manager_id = employee_assignment["manager_id"]
-                        if manager_id and manager_id in employee_by_id:
-                            # この社員はマネージャーの下に追加
-                            employee_by_id[manager_id]["children"].append(current_node)
-                        else:
-                            # 上司がいない場合はセクション直下に追加
-                            section_info["employees"].append(current_node)
+                    employee_by_id[leader_id]["employees"].insert(0, current_node)
+                    continue
+
+                # 2. サブマネージャー直属メンバーはサブマネの children の先頭に追加
+                if submanager_id and submanager_id in employee_by_id:
+                    employee_by_id[submanager_id]["children"].insert(0, current_node)
+                    continue
+
+                # 3. マネージャー直属メンバーも children の先頭に追加
+                if manager_id and manager_id in employee_by_id:
+                    employee_by_id[manager_id]["children"].insert(0, current_node)
+                    continue
+
+                # 4. 上司がいない社員はセクション直下に追加
+                section_info["employees"].append(current_node)
 
         # ============================
         # 6. 完成したセクションツリーを返却
