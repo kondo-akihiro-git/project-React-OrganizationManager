@@ -1,12 +1,8 @@
-import Base from "./Base";
-import TestPage from "./pages/TestPage";
+// frontend/src/App.tsx
+import Base from "./base/Base";
 
 function App() {
-  return (
-    <Base>
-      <TestPage />
-    </Base>
-  );
+  return <Base />;
 }
 
 export default App;

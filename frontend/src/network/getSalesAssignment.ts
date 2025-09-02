@@ -1,5 +1,5 @@
 // frontend/src/network/getSalesAssignment.ts
-import { API_URL } from "../Base";
+import { API_URL } from "../base/Base";
 
 // ============================
 // 社員タイプ

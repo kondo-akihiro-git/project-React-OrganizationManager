@@ -1,10 +1,11 @@
+// frontend/src/pages/SalesPage.tsx
 import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { Tree, TreeNode } from "react-organizational-chart";
 import { Section, Employee, get_sales_assignment } from "../network/getSalesAssignment";
 
-export default function TestPage() {
+export default function SalesPage() {
   const [sections, setSections] = useState<Section[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -83,28 +84,58 @@ export default function TestPage() {
     );
   };
 
-  const renderSection = (section: Section) => (
-    <TreeNode
-      key={section.section_id}
-      label={
-        <Box
-          sx={{
-            padding: 1,
-            border: "2px solid #1976d2",
-            borderRadius: 1,
-            backgroundColor: "#bbdefb",
-            textAlign: "center",
-            whiteSpace: "nowrap",
-          }}
-        >
-          📂 {section.section_name}
-        </Box>
-      }
-    >
-      {section.employees.map(renderEmployee)}
-      {section.children.map(renderSection)}
-    </TreeNode>
-  );
+//   const renderSection = (section: Section) => (
+//     <TreeNode
+//       key={section.section_id}
+//       label={
+//         <Box
+//           sx={{
+//             padding: 1,
+//             border: "2px solid #1976d2",
+//             borderRadius: 1,
+//             backgroundColor: "#bbdefb",
+//             textAlign: "center",
+//             whiteSpace: "nowrap",
+//           }}
+//         >
+//           📂 {section.section_name}
+//         </Box>
+//       }
+//     >
+//       {section.employees.map(renderEmployee)}
+//       {section.children.map(renderSection)}
+//     </TreeNode>
+//   );
+
+
+const renderSection = (section: Section) => (
+  <TreeNode
+    key={section.section_id}
+    label={
+      <Box
+        sx={{
+          padding: 1,
+          border: "2px solid #1976d2",
+          borderRadius: 1,
+          backgroundColor: "#bbdefb",
+          textAlign: "center",
+          whiteSpace: "nowrap",
+        }}
+      >
+        📂 {section.section_name}
+      </Box>
+    }
+  >
+    {/* まず課長（section.employees）を描画 */}
+    {section.employees.map(renderEmployee)}
+
+    {/* その下に係（section.children）を描画 */}
+    {section.children.map(renderSection)}
+  </TreeNode>
+);
+
+
+
 
   return (
     <Box sx={{ padding: 2, overflow: "hidden" }}>
