@@ -84,29 +84,6 @@ export default function SalesPage() {
     );
   };
 
-//   const renderSection = (section: Section) => (
-//     <TreeNode
-//       key={section.section_id}
-//       label={
-//         <Box
-//           sx={{
-//             padding: 1,
-//             border: "2px solid #1976d2",
-//             borderRadius: 1,
-//             backgroundColor: "#bbdefb",
-//             textAlign: "center",
-//             whiteSpace: "nowrap",
-//           }}
-//         >
-//           📂 {section.section_name}
-//         </Box>
-//       }
-//     >
-//       {section.employees.map(renderEmployee)}
-//       {section.children.map(renderSection)}
-//     </TreeNode>
-//   );
-
 
 const renderSection = (section: Section) => (
   <TreeNode
@@ -133,9 +110,6 @@ const renderSection = (section: Section) => (
     {section.children.map(renderSection)}
   </TreeNode>
 );
-
-
-
 
   return (
     <Box sx={{ padding: 2, overflow: "hidden" }}>
@@ -174,3 +148,4 @@ const renderSection = (section: Section) => (
     </Box>
   );
 }
+
