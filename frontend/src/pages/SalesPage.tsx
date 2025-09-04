@@ -3,25 +3,7 @@ import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { Tree, TreeNode } from "react-organizational-chart";
-
-// ==========================
-// API の URL
-// ==========================
-// ここではローカルの FastAPI サーバーからデータを取る想定です。
-// もしサーバーのポート番号やエンドポイントが違えば書き換えてください。
-const API_URL = "http://localhost:8000";
-
-// ==========================
-// データの型定義（OrganizationItem）
-// ==========================
-// API から返ってくる「組織の1つの要素」を表す型です。
-// 「課」や「主任」や「メンバー」などがすべてこの形で表現されます。
-type OrganizationItem = {
-  id: number;                  // 識別用のID
-  name: string;                // 名前（例: 山田太郎, 第1課）
-  title?: string;              // 役職（例: 主任、副主任、メンバー）
-  children: OrganizationItem[]; // 子要素（例: 課の中のチーム、主任の下のメンバー）
-};
+import { getSalesAssignment, OrganizationItem } from "../network/getSalesAssignment";
 
 // ==========================
 // メインの画面コンポーネント
@@ -40,18 +22,16 @@ export default function SalesPage() {
   const [scale, setScale] = useState(1);
 
   // --------------------------
-  // APIからデータを取得する処理
+  // APIからデータを取得
   // --------------------------
-  // useEffect は「最初に画面を表示するときに1回だけ実行する」処理を置く場所です。
   useEffect(() => {
-    // 非同期関数（async function）でデータを取りにいく
     const fetchData = async () => {
-      const response = await fetch(`${API_URL}/sales_assignment`); // API呼び出し
-      const json = await response.json(); // JSONに変換
-      setOrganizationData(json);          // stateに保存 → これで画面が更新される
+      const data = await getSalesAssignment();
+      setOrganizationData(data);
     };
     fetchData();
-  }, []); // ← [] が「初回だけ実行」を意味します
+  }, []);
+
 
   // --------------------------
   // 画面サイズに応じた縮小処理
