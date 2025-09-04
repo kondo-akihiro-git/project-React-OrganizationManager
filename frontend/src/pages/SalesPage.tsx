@@ -65,7 +65,7 @@ export default function SalesPage() {
     let bgColor = "#e3f2fd";
 
     if (item.title === "副主任") {
-      bgColor = "#c8e6c9"; // 副主任 → 緑
+      bgColor = "#e3f2fd"; // 副主任 → 緑
     } else if (item.title === "メンバー") {
       bgColor = "#e3f2fd"; // メンバー → 薄い青
     } else {
@@ -103,7 +103,7 @@ export default function SalesPage() {
             key={member.id}
             sx={{
               backgroundColor:
-                member.title === "副主任" ? "#c8e6c9" : "#e3f2fd",
+                member.title === "副主任" ? "#e3f2fd" : "#e3f2fd",
               borderRadius: 0.5,
               padding: "1px 4px",
             }}
