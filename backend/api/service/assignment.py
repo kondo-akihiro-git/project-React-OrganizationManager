@@ -3,121 +3,115 @@ from typing import List, Dict, Any
 from db.connection.connection import get_connection, release_connection
 
 async def get_sales_assignment() -> List[Dict[str, Any]]:
-    # データベース接続を取得
     connection = await get_connection()
     try:
         # ============================
-        # 1. セクション情報を取得
+        # 1. 課取得（必ず存在）
         # ============================
-        section_rows = await connection.fetch("SELECT id, name, parent_id FROM sales_section;")
-        all_sections: List[Dict[str, Any]] = [dict(row) for row in section_rows]
+        dept_rows = await connection.fetch("SELECT id, name FROM sales_department ORDER BY id;")
+        departments = [dict(r) for r in dept_rows]
+        dept_by_id = {d['id']: {**d, 'children': []} for d in departments}
 
-        # セクションをIDで参照できる辞書を作成
-        section_by_id: Dict[int, Dict[str, Any]] = {}
-        for section in all_sections:
-            section_by_id[section["id"]] = {
-                "section_id": section["id"],
-                "section_name": section["name"],
-                "children": [],   # サブセクションを入れるためのリスト
-                "employees": []   # 直下の社員を入れるためのリスト
-            }
+        # ============================
+        # 2. 課長取得
+        # ============================
+        mgr_rows = await connection.fetch("SELECT id, name, department_id FROM sales_manager;")
+        managers = [dict(r) for r in mgr_rows]
+        mgr_by_id = {m['id']: {**m, 'children': []} for m in managers}
 
-        # 親子関係を設定
-        root_sections: List[Dict[str, Any]] = []
-        for section in all_sections:
-            parent_id = section["parent_id"]
-            if parent_id:
-                # 親セクションがある場合は親のchildrenに追加
-                section_by_id[parent_id]["children"].append(section_by_id[section["id"]])
+        # 課長を課に紐付け
+        for m in managers:
+            dept_by_id[m['department_id']]['children'].append(mgr_by_id[m['id']])
+
+        # ============================
+        # 3. 係（チーム）取得
+        # ============================
+        team_rows = await connection.fetch("SELECT id, name, department_id, manager_id FROM sales_team;")
+        teams = [dict(r) for r in team_rows]
+        team_by_id = {t['id']: {**t, 'children': []} for t in teams}
+
+        # 課長がいれば課長に、いなければ課に直接紐付け
+        for t in teams:
+            if t['manager_id'] and t['manager_id'] in mgr_by_id:
+                mgr_by_id[t['manager_id']]['children'].append(team_by_id[t['id']])
             else:
-                # 親がいない場合は最上位セクションとしてrootに追加
-                root_sections.append(section_by_id[section["id"]])
+                dept_by_id[t['department_id']]['children'].append(team_by_id[t['id']])
 
         # ============================
-        # 2. 役職情報を取得
+        # 4. 係長取得
         # ============================
-        position_rows = await connection.fetch("SELECT id, name, role FROM sales_position;")
-        position_by_id: Dict[int, Dict[str, str]] = {}
-        for row in position_rows:
-            position_by_id[row["id"]] = {"name": row["name"], "role": row["role"]}
+        sub_mgr_rows = await connection.fetch(
+            "SELECT id, name, team_id, manager_id, department_id FROM sales_sub_manager;"
+        )
+        sub_mgrs = [dict(r) for r in sub_mgr_rows]
+        sub_mgr_by_id = {s['id']: {**s, 'children': []} for s in sub_mgrs}
 
-        # ============================
-        # 3. 社員の配置情報を取得
-        # ============================
-        query = """
-        SELECT
-            a.employee_id,
-            e.name AS employee_name,
-            a.section_id,
-            a.position_id,
-            a.manager_id,
-            a.submanager_id,
-            a.leader_id
-        FROM sales_assignment a
-        JOIN sales_employee e ON a.employee_id = e.id
-        ORDER BY a.id;
-        """
-        employee_rows = await connection.fetch(query)
-        all_employee_assignments: List[Dict[str, Any]] = [dict(row) for row in employee_rows]
+        # 係長を親に紐付け（チーム→課長→課の順）
+        for s in sub_mgrs:
+            parent = None
+            if s['team_id'] and s['team_id'] in team_by_id:
+                parent = team_by_id[s['team_id']]
+            elif s['manager_id'] and s['manager_id'] in mgr_by_id:
+                parent = mgr_by_id[s['manager_id']]
+            else:
+                parent = dept_by_id[s['department_id']]
+            parent['children'].append(sub_mgr_by_id[s['id']])
 
         # ============================
-        # 4. セクションごとに社員を整理
+        # 5. 主任取得
         # ============================
-        for section_id, section_info in section_by_id.items():
-            # そのセクションに所属する社員だけを抽出
-            employees_in_this_section = [
-                e for e in all_employee_assignments if e["section_id"] == section_id
-            ]
+        leader_rows = await connection.fetch(
+            "SELECT id, name, sub_manager_id, team_id, manager_id, department_id FROM sales_leader;"
+        )
+        leaders = [dict(r) for r in leader_rows]
+        leader_by_id = {l['id']: {**l, 'children': []} for l in leaders}
 
-            # 社員IDをキーにした辞書を作成（検索用）
-            employee_by_id: Dict[int, Dict[str, Any]] = {}
-            for employee_assignment in employees_in_this_section:
-                employee_id = employee_assignment["employee_id"]
-                employee_node = {
-                    "employee_id": employee_id,
-                    "employee_name": employee_assignment["employee_name"],
-                    "position": position_by_id[employee_assignment["position_id"]]["name"],
-                    "role": position_by_id[employee_assignment["position_id"]]["role"],
-                    "children": [],  # サブマネージャーやリーダーの下位社員
-                    "employees": []  # リーダーの下のメンバー
-                }
-                employee_by_id[employee_id] = employee_node
-
-            # ============================
-            # 5. 従属関係を設定
-            # ============================
-
-            for employee_assignment in employees_in_this_section:
-                current_employee_id = employee_assignment["employee_id"]
-                current_node = employee_by_id[current_employee_id]
-
-                leader_id = employee_assignment["leader_id"]
-                submanager_id = employee_assignment["submanager_id"]
-                manager_id = employee_assignment["manager_id"]
-
-                # 1. リーダー直属メンバーはリーダーの employees の先頭に追加
-                if leader_id and leader_id in employee_by_id:
-                    employee_by_id[leader_id]["employees"].insert(0, current_node)
-                    continue
-
-                # 2. サブマネージャー直属メンバーはサブマネの children の先頭に追加
-                if submanager_id and submanager_id in employee_by_id:
-                    employee_by_id[submanager_id]["children"].insert(0, current_node)
-                    continue
-
-                # 3. マネージャー直属メンバーも children の先頭に追加
-                if manager_id and manager_id in employee_by_id:
-                    employee_by_id[manager_id]["children"].insert(0, current_node)
-                    continue
-
-                # 4. 上司がいない社員はセクション直下に追加
-                section_info["employees"].append(current_node)
+        # 親を優先順に紐付け（sub_manager → team → manager → department）
+        for l in leaders:
+            parent = None
+            if l['sub_manager_id'] and l['sub_manager_id'] in sub_mgr_by_id:
+                parent = sub_mgr_by_id[l['sub_manager_id']]
+            elif l['team_id'] and l['team_id'] in team_by_id:
+                parent = team_by_id[l['team_id']]
+            elif l['manager_id'] and l['manager_id'] in mgr_by_id:
+                parent = mgr_by_id[l['manager_id']]
+            else:
+                parent = dept_by_id[l['department_id']]
+            parent['children'].append(leader_by_id[l['id']])
 
         # ============================
-        # 6. 完成したセクションツリーを返却
+        # 6. メンバー取得
         # ============================
-        return root_sections
+        member_rows = await connection.fetch(
+            "SELECT id, name, title, leader_id, sub_manager_id, team_id, manager_id, department_id FROM sales_member;"
+        )
+        members = [dict(r) for r in member_rows]
+
+        for m in members:
+            node = {
+                'id': m['id'],
+                'name': m['name'],
+                'title': m['title'],
+                'children': []
+            }
+            # 親を優先順に紐付け（leader → sub_manager → team → manager → department）
+            parent = None
+            if m['leader_id'] and m['leader_id'] in leader_by_id:
+                parent = leader_by_id[m['leader_id']]
+            elif m['sub_manager_id'] and m['sub_manager_id'] in sub_mgr_by_id:
+                parent = sub_mgr_by_id[m['sub_manager_id']]
+            elif m['team_id'] and m['team_id'] in team_by_id:
+                parent = team_by_id[m['team_id']]
+            elif m['manager_id'] and m['manager_id'] in mgr_by_id:
+                parent = mgr_by_id[m['manager_id']]
+            else:
+                parent = dept_by_id[m['department_id']]
+            parent['children'].append(node)
+
+        # ============================
+        # 7. 最終的に課単位で返す
+        # ============================
+        return list(dept_by_id.values())
 
     finally:
-        # 接続は必ず解放
         await release_connection(connection)
