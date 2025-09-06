@@ -178,6 +178,209 @@ export default function SalesPage() {
     );
   };
 
+// --------------------------
+// 再帰をやめた「冗長な」組織描画
+// --------------------------
+// const renderOrganizationItem = (item: OrganizationItem) => {
+//   // メンバー or 副主任を描画
+//   const members = item.children.filter(
+//     (c) => c.title === "メンバー" || c.title === "副主任"
+//   );
+//   const subOrgs1 = item.children.filter(
+//     (c) => c.title !== "メンバー" && c.title !== "副主任"
+//   );
+
+//   const label1 = (
+//     <Box sx={getBoxStyle(item)}>
+//       {item.title ? `${item.title} ${item.name}` : item.name}
+//       {members.length > 0 && renderMembers(members)}
+//     </Box>
+//   );
+
+//   return (
+//     <TreeNode key={item.id} label={label1}>
+//       {subOrgs1.map((child1) => {
+//         // ---- 第2階層 ----
+//         const members1 = child1.children.filter(
+//           (c) => c.title === "メンバー" || c.title === "副主任"
+//         );
+//         const subOrgs2 = child1.children.filter(
+//           (c) => c.title !== "メンバー" && c.title !== "副主任"
+//         );
+
+//         const label2 = (
+//           <Box sx={getBoxStyle(child1)}>
+//             {child1.title ? `${child1.title} ${child1.name}` : child1.name}
+//             {members1.length > 0 && renderMembers(members1)}
+//           </Box>
+//         );
+
+//         return (
+//           <TreeNode key={child1.id} label={label2}>
+//             {subOrgs2.map((child2) => {
+//               // ---- 第3階層 ----
+//               const members2 = child2.children.filter(
+//                 (c) => c.title === "メンバー" || c.title === "副主任"
+//               );
+//               const subOrgs3 = child2.children.filter(
+//                 (c) => c.title !== "メンバー" && c.title !== "副主任"
+//               );
+
+//               const label3 = (
+//                 <Box sx={getBoxStyle(child2)}>
+//                   {child2.title ? `${child2.title} ${child2.name}` : child2.name}
+//                   {members2.length > 0 && renderMembers(members2)}
+//                 </Box>
+//               );
+
+//               return (
+//                 <TreeNode key={child2.id} label={label3}>
+//                   {subOrgs3.map((child3) => {
+//                     // ---- 第4階層 ----
+//                     const members3 = child3.children.filter(
+//                       (c) => c.title === "メンバー" || c.title === "副主任"
+//                     );
+//                     const subOrgs4 = child3.children.filter(
+//                       (c) => c.title !== "メンバー" && c.title !== "副主任"
+//                     );
+
+//                     const label4 = (
+//                       <Box sx={getBoxStyle(child3)}>
+//                         {child3.title
+//                           ? `${child3.title} ${child3.name}`
+//                           : child3.name}
+//                         {members3.length > 0 && renderMembers(members3)}
+//                       </Box>
+//                     );
+
+//                     return (
+//                       <TreeNode key={child3.id} label={label4}>
+//                         {subOrgs4.map((child4) => {
+//                           // ---- 第5階層 ----
+//                           const members4 = child4.children.filter(
+//                             (c) =>
+//                               c.title === "メンバー" || c.title === "副主任"
+//                           );
+//                           const subOrgs5 = child4.children.filter(
+//                             (c) =>
+//                               c.title !== "メンバー" &&
+//                               c.title !== "副主任"
+//                           );
+
+//                           const label5 = (
+//                             <Box sx={getBoxStyle(child4)}>
+//                               {child4.title
+//                                 ? `${child4.title} ${child4.name}`
+//                                 : child4.name}
+//                               {members4.length > 0 && renderMembers(members4)}
+//                             </Box>
+//                           );
+
+//                           return (
+//                             <TreeNode key={child4.id} label={label5}>
+//                               {subOrgs5.map((child5) => {
+//                                 // ---- 第6階層 ----
+//                                 const members5 = child5.children.filter(
+//                                   (c) =>
+//                                     c.title === "メンバー" ||
+//                                     c.title === "副主任"
+//                                 );
+//                                 const subOrgs6 = child5.children.filter(
+//                                   (c) =>
+//                                     c.title !== "メンバー" &&
+//                                     c.title !== "副主任"
+//                                 );
+
+//                                 const label6 = (
+//                                   <Box sx={getBoxStyle(child5)}>
+//                                     {child5.title
+//                                       ? `${child5.title} ${child5.name}`
+//                                       : child5.name}
+//                                     {members5.length > 0 &&
+//                                       renderMembers(members5)}
+//                                   </Box>
+//                                 );
+
+//                                 return (
+//                                   <TreeNode key={child5.id} label={label6}>
+//                                     {subOrgs6.map((child6) => {
+//                                       // ---- 第7階層 ----
+//                                       const members6 = child6.children.filter(
+//                                         (c) =>
+//                                           c.title === "メンバー" ||
+//                                           c.title === "副主任"
+//                                       );
+//                                       const subOrgs7 =
+//                                         child6.children.filter(
+//                                           (c) =>
+//                                             c.title !== "メンバー" &&
+//                                             c.title !== "副主任"
+//                                         );
+
+//                                       const label7 = (
+//                                         <Box sx={getBoxStyle(child6)}>
+//                                           {child6.title
+//                                             ? `${child6.title} ${child6.name}`
+//                                             : child6.name}
+//                                           {members6.length > 0 &&
+//                                             renderMembers(members6)}
+//                                         </Box>
+//                                       );
+
+//                                       return (
+//                                         <TreeNode
+//                                           key={child6.id}
+//                                           label={label7}
+//                                         >
+//                                           {subOrgs7.map((child7) => {
+//                                             // ---- 第8階層（ここで止める）----
+//                                             const members7 =
+//                                               child7.children.filter(
+//                                                 (c) =>
+//                                                   c.title === "メンバー" ||
+//                                                   c.title === "副主任"
+//                                               );
+
+//                                             const label8 = (
+//                                               <Box sx={getBoxStyle(child7)}>
+//                                                 {child7.title
+//                                                   ? `${child7.title} ${child7.name}`
+//                                                   : child7.name}
+//                                                 {members7.length > 0 &&
+//                                                   renderMembers(members7)}
+//                                               </Box>
+//                                             );
+
+//                                             return (
+//                                               <TreeNode
+//                                                 key={child7.id}
+//                                                 label={label8}
+//                                               />
+//                                             );
+//                                           })}
+//                                         </TreeNode>
+//                                       );
+//                                     })}
+//                                   </TreeNode>
+//                                 );
+//                               })}
+//                             </TreeNode>
+//                           );
+//                         })}
+//                       </TreeNode>
+//                     );
+//                   })}
+//                 </TreeNode>
+//               );
+//             })}
+//           </TreeNode>
+//         );
+//       })}
+//     </TreeNode>
+//   );
+// };
+
+
 
   // --------------------------
   // 実際の画面描画
