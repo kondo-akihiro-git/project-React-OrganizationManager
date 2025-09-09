@@ -125,58 +125,121 @@ export default function SalesPage() {
   // 2. メンバーを下に並べる
   // 3. 子供の課やチームがあれば、また同じように描画する
   // この3つだけです！
-  const renderOrganizationItem = (item: OrganizationItem) => {
-    // -------------------------------------------------
-    // ステップ1: 子供の中から「メンバーと副主任」だけを取り出す
-    // -------------------------------------------------
-    // item.children の中には「課」「主任」「メンバー」などいろいろ入っているので、
-    // その中から「メンバー」または「副主任」だけを選びます。
-    const members = item.children.filter((child) => {
-      return child.title === "メンバー" || child.title === "副主任";
-    });
+//   const renderOrganizationItem = (item: OrganizationItem) => {
+//     // -------------------------------------------------
+//     // ステップ1: 子供の中から「メンバーと副主任」だけを取り出す
+//     // -------------------------------------------------
+//     // item.children の中には「課」「主任」「メンバー」などいろいろ入っているので、
+//     // その中から「メンバー」または「副主任」だけを選びます。
+//     const members = item.children.filter((child) => {
+//       return child.title === "メンバー" || child.title === "副主任";
+//     });
 
-    // -------------------------------------------------
-    // ステップ2: 子供の中から「課やチームなど（メンバー以外）」を取り出す
-    // -------------------------------------------------
-    // 「課」や「チーム」や「主任」などはここに分類されます。
-    const subOrganizations = item.children.filter((child) => {
-      return child.title !== "メンバー" && child.title !== "副主任";
-    });
+//     // -------------------------------------------------
+//     // ステップ2: 子供の中から「課やチームなど（メンバー以外）」を取り出す
+//     // -------------------------------------------------
+//     // 「課」や「チーム」や「主任」などはここに分類されます。
+//     const subOrganizations = item.children.filter((child) => {
+//       return child.title !== "メンバー" && child.title !== "副主任";
+//     });
 
-    // -------------------------------------------------
-    // ステップ3: 自分自身の見た目（ボックス）を作る
-    // -------------------------------------------------
-    // 役職（title）があれば「主任 山田太郎」のように役職＋名前を表示。
-    // なければ「第1課」のように名前だけを表示します。
-    const label = (
-      <Box sx={getBoxStyle(item)}>
-        {/* 自分自身の肩書きと名前 */}
-        {item.title ? `${item.title} ${item.name}` : item.name}
+//     // -------------------------------------------------
+//     // ステップ3: 自分自身の見た目（ボックス）を作る
+//     // -------------------------------------------------
+//     // 役職（title）があれば「主任 山田太郎」のように役職＋名前を表示。
+//     // なければ「第1課」のように名前だけを表示します。
+//     const label = (
+//       <Box sx={getBoxStyle(item)}>
+//         {/* 自分自身の肩書きと名前 */}
+//         {item.title ? `${item.title} ${item.name}` : item.name}
 
-        {/* メンバーがいたらその下に表示する */}
-        {members.length > 0 && renderMembers(members)}
-      </Box>
-    );
+//         {/* メンバーがいたらその下に表示する */}
+//         {members.length > 0 && renderMembers(members)}
+//       </Box>
+//     );
 
-    // -------------------------------------------------
-    // ステップ4: TreeNode に変換する
-    // -------------------------------------------------
-    // react-organizational-chart の TreeNode を使って
-    // 「自分自身のボックス（label）」をラベルにして、
-    // さらに子供の subOrganizations を map で同じ処理にかけます。
-    //
-    // ポイント: ここで再び renderOrganizationItem(sub) を呼んでいるので、
-    //            子供の課やチームも「同じ手順」で描画されます。
-    //            つまり入れ子構造が自然に作られます。
-    return (
-      <TreeNode key={item.id} label={label}>
-        {/* 子供の課やチームをひとつずつ処理する */}
-        {subOrganizations.map((sub) => {
-          return renderOrganizationItem(sub);
-        })}
-      </TreeNode>
-    );
-  };
+//     // -------------------------------------------------
+//     // ステップ4: TreeNode に変換する
+//     // -------------------------------------------------
+//     // react-organizational-chart の TreeNode を使って
+//     // 「自分自身のボックス（label）」をラベルにして、
+//     // さらに子供の subOrganizations を map で同じ処理にかけます。
+//     //
+//     // ポイント: ここで再び renderOrganizationItem(sub) を呼んでいるので、
+//     //            子供の課やチームも「同じ手順」で描画されます。
+//     //            つまり入れ子構造が自然に作られます。
+//     return (
+//       <TreeNode key={item.id} label={label}>
+//         {/* 子供の課やチームをひとつずつ処理する */}
+//         {subOrganizations.map((sub) => {
+//           return renderOrganizationItem(sub);
+//         })}
+//       </TreeNode>
+//     );
+//   };
+
+// 主任グループ（主任＋配下のメンバーたち）をまとめる
+// 主任をまとめて表示する
+
+
+
+const renderOrganizationItem = (item: OrganizationItem) => {
+  const members = item.children.filter(
+    (child) => child.title === "メンバー" || child.title === "副主任"
+  );
+  const subOrganizations = item.children.filter(
+    (child) => child.title !== "メンバー" && child.title !== "副主任"
+  );
+
+  // 主任とそれ以外を分ける
+  const shunins = subOrganizations.filter((child) => child.title === "主任");
+  const others = subOrganizations.filter((child) => child.title !== "主任");
+
+  // 自分のボックス
+  const label = (
+    <Box sx={getBoxStyle(item)}>
+      {item.title ? `${item.title} ${item.name}` : item.name}
+      {members.length > 0 && renderMembers(members)}
+    </Box>
+  );
+
+  return (
+    <TreeNode key={item.id} label={label}>
+      {/* 主任まとめボックス（複数いる場合のみ） */}
+      {shunins.length > 1 ? (
+        <TreeNode
+          label={
+            <Box
+              sx={{
+                border: "2px dashed #1976d2",
+                borderRadius: 1,
+                padding: 1,
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)", // 必要に応じて動的に
+                gap: 1,
+              }}
+            >
+              {shunins.map((shunin) => (
+                <Box key={shunin.id} sx={getBoxStyle(shunin)}>
+                  {shunin.title} {shunin.name}
+                  {shunin.children.length > 0 && renderMembers(shunin.children)}
+                </Box>
+              ))}
+            </Box>
+          }
+        />
+      ) : (
+        // 主任が1人だけならそのまま描画（点線枠は作らない）
+        shunins.map((shunin) => renderOrganizationItem(shunin))
+      )}
+
+      {/* 主任以外の下位組織 */}
+      {others.map((sub) => renderOrganizationItem(sub))}
+    </TreeNode>
+  );
+};
+
+
 
 // --------------------------
 // 再帰をやめた「冗長な」組織描画
@@ -393,14 +456,16 @@ export default function SalesPage() {
       </Typography>
 
       {/* 縮小用の枠 */}
-      <Box ref={containerRef} sx={{ width: "100%", overflow: "hidden" }}>
-        <Box
-          sx={{
-            transform: `scale(${scale})`,       // 縮小率を適用
-            transformOrigin: "top left",        // 左上基準で縮小
-            display: "inline-block",            // はみ出さないように
-          }}
-        >
+      <Box ref={containerRef} sx={{ width: "100%", overflowX: "auto", overflowY: "hidden" }}>
+  <Box
+    sx={{
+      transform: `scale(${scale})`,
+      transformOrigin: "top left",
+      display: "inline-block",
+      minWidth: "100%",
+    }}
+  >
+
           {/* 営業部（最上位のボックス） */}
           <Tree
             label={
