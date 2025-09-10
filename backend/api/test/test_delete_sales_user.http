@@ -1,23 +1,23 @@
 ### 1. 課長(maanger)を削除
 #         manager=1 は仮のデータなので修正すること
 #         テストデータで「テスト課長さん」を作成しているのでDBでIDを確認した方がいいかも
-DELETE http://localhost:8000/sales_user/manager/1
+DELETE http://localhost:8000/sales_user/manager/3
 Accept: application/json
 
 ### 2. 係長(sub_manager)を削除
 #         sub_manager=1 は仮のデータなので修正すること
 #         実データのmanager_id=1 (佐藤 絵里子) の配下に「テスト係長さん」を作成しているのでDBでIDを確認した方がいいかも
-DELETE http://localhost:8000/sales_user/sub_manager/1
+DELETE http://localhost:8000/sales_user/sub_manager/3
 Accept: application/json
 
 ### 3. 主任を削除
 #         leader=1 は仮のデータなので修正すること
 #         実データのsub_manager_id=1 (長谷 健太朗) の配下に「テスト主任さん」を作成しているのでDBでIDを確認した方がいいかも
-DELETE http://localhost:8000/sales_user/leader/1
+DELETE http://localhost:8000/sales_user/leader/8
 Accept: application/json
 
 ### 4. メンバーを削除
 #         member=1 は仮のデータなので修正すること
 #         実データのleader_id=1 (柴山 朋希) の配下に「テストメンバーさん」を作成しているのでDBでIDを確認した方がいいかも
-DELETE http://localhost:8000/sales_user/member/1
+DELETE http://localhost:8000/sales_user/member/59
 Accept: application/json

@@ -215,7 +215,7 @@ const renderOrganizationItem = (item: OrganizationItem) => {
                 borderRadius: 1,
                 padding: 1,
                 display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)", // 必要に応じて動的に
+                gridTemplateColumns: `repeat(${Math.min(shunins.length, 3)}, 1fr)`, // 必要に応じて動的に
                 gap: 1,
               }}
             >
