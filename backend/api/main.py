@@ -1,7 +1,10 @@
 # backend/api/main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.service.assignment import get_sales_assignment
+from api.service.get_sales_assignment import get_sales_assignment
+from api.schema.user_shema import CreateSalesUserRequest
+from api.service.create_sales_user import create_sales_user
+from api.service.delete_sales_user import delete_sales_user
 from config.settings import settings
 
 app = FastAPI()
@@ -16,5 +19,13 @@ app.add_middleware(
 )
 
 @app.get("/sales_assignment")
-async def assignment():
+async def getSalesAssignment():
     return await get_sales_assignment()
+
+@app.post("/create_sales_user")
+async def createSalesUser(user: CreateSalesUserRequest):
+    return await create_sales_user(user)
+
+@app.delete("/sales_user/{role}/{user_id}")
+async def deleteSalesUser(role: str, user_id: int):
+    return await delete_sales_user(role, user_id)

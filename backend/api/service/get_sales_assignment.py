@@ -1,4 +1,4 @@
-# backend/api/service/assignment.py
+# backend/api/service/get_sales_assignment.py
 from typing import List, Dict, Any
 from db.connection.connection import get_connection, release_connection
 

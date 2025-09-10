@@ -1,0 +1,63 @@
+### 1. 課長を追加(課は第一営業課（PP/BP）に所属する想定)
+#         department_id=1 は営業部
+POST http://localhost:8000/create_sales_user
+Content-Type: application/json
+
+{
+  "name": "テスト課長さん",
+  "role": "manager",
+  "department_id": 1
+}
+
+
+### 2. 係長を追加 (係は SES(PP) に所属する想定)
+#         department_id=1 は営業部
+#         manager_id=1 (佐藤 絵里子 課長) の配下
+#         team_id=1 (SES(PP)) に所属
+POST http://localhost:8000/create_sales_user
+Content-Type: application/json
+
+{
+  "name": "テスト係長さん",
+  "role": "sub_manager",
+  "department_id": 1,
+  "manager_id": 1,
+  "team_id": 1
+}
+
+### 3. 主任を追加 (第一営業課 → SES(PP) → 係長Bの配下に所属する想定)
+#         department_id=1 は営業部
+#         manager_id=1 (佐藤 絵里子 課長) の配下
+#         team_id=1 (SES(PP)) に所属
+#         sub_manager_id=1 (係長 長谷 健太朗) の配下
+POST http://localhost:8000/create_sales_user
+Content-Type: application/json
+
+{
+  "name": "テスト主任さん",
+  "role": "leader",
+  "department_id": 1,
+  "manager_id": 1,
+  "team_id": 1,
+  "sub_manager_id": 1
+}
+
+### 4. メンバーを追加 (第一営業課 → SES(PP) → 係長B → 主任C の配下に所属する想定)
+#         department_id=1 は営業部
+#         manager_id=1 (佐藤 絵里子 課長) の配下
+#         team_id=1 (SES(PP)) に所属
+#         sub_manager_id=1 (係長 長谷 健太朗) の配下
+#         leader_id=1 (主任 柴山 朋希など) の配下に紐づけ
+POST http://localhost:8000/create_sales_user
+Content-Type: application/json
+
+{
+  "name": "テストメンバーさん",
+  "title": "メンバー",
+  "role": "member",
+  "department_id": 1,
+  "manager_id": 1,
+  "team_id": 1,
+  "sub_manager_id": 1,
+  "leader_id": 1
+}
