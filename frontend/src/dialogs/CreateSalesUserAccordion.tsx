@@ -58,27 +58,21 @@ export default function CreateSalesUserAccordion({ onCreate }: CreateSalesUserAc
 
   const roleSelected = role !== "";
 
-  // const isDepartmentDisabled = !roleSelected;
-  // const isTeamDisabled = !roleSelected || !(role === "sub_manager" || role === "leader" || role === "member");
-  // const isManagerDisabled = !roleSelected || !(role === "sub_manager" || role === "leader" || role === "member");
-  // const isSubManagerDisabled = !roleSelected || !(role === "leader" || role === "member");
-  // const isLeaderDisabled = !roleSelected || role !== "member";
+  // --- 役職ごとの入力可否 ---
+  const isDepartmentDisabled =
+    !role || !(role === "manager" || role === "sub_manager" || role === "leader" || role === "member-none" || role === "member-sub");
 
-// --- 役職ごとの入力可否 ---
-const isDepartmentDisabled =
-  !role || !(role === "manager" || role === "sub_manager" || role === "leader" || role === "member-none" || role === "member-sub");
+  const isTeamDisabled =
+    !role || !(role === "sub_manager" || role === "leader" || role === "member-none" || role === "member-sub");
 
-const isTeamDisabled =
-  !role || !(role === "sub_manager" || role === "leader" || role === "member-none" || role === "member-sub");
+  const isManagerDisabled =
+    !role || !(role === "sub_manager" || role === "leader" || role === "member-none" || role === "member-sub");
 
-const isManagerDisabled =
-  !role || !(role === "sub_manager" || role === "leader" || role === "member-none" || role === "member-sub");
+  const isSubManagerDisabled =
+    !role || !(role === "leader" || role === "member-none" || role === "member-sub");
 
-const isSubManagerDisabled =
-  !role || !(role === "leader" || role === "member-none" || role === "member-sub");
-
-const isLeaderDisabled =
-  !role || !(role === "member-none" || role === "member-sub");
+  const isLeaderDisabled =
+    !role || !(role === "member-none" || role === "member-sub");
 
 
   useEffect(() => {
@@ -97,37 +91,37 @@ const isLeaderDisabled =
     role,
   ]);
 
-const roleToTitleMap: Record<string, string> = {
-  manager: "課長",
-  sub_manager: "係長",
-  leader: "主任",
-  "member-none": "メンバー",
-  "member-sub": "副主任",
-};
+  const roleToTitleMap: Record<string, string> = {
+    manager: "課長",
+    sub_manager: "係長",
+    leader: "主任",
+    "member-none": "メンバー",
+    "member-sub": "副主任",
+  };
 
-const handleSubmit = () => {
-  if (!name || !role) return;
-  onCreate({
-    role,
-    name,
-    title: roleToTitleMap[role] || "",
-    department_id: departmentId,
-    team_id: teamId,
-    manager_id: managerId,
-    sub_manager_id: subManagerId,
-    leader_id: leaderId,
-  });
-  // フォーム初期化
-  setName("");
-  setRole("");
-  setTitle("");
-  setDepartmentId(null);
-  setTeamId(null);
-  setManagerId(null);
-  setSubManagerId(null);
-  setLeaderId(null);
-  setExpanded(false);
-};
+  const handleSubmit = () => {
+    if (!name || !role) return;
+    onCreate({
+      role,
+      name,
+      title: roleToTitleMap[role] || "",
+      department_id: departmentId,
+      team_id: teamId,
+      manager_id: managerId,
+      sub_manager_id: subManagerId,
+      leader_id: leaderId,
+    });
+    // フォーム初期化
+    setName("");
+    setRole("");
+    setTitle("");
+    setDepartmentId(null);
+    setTeamId(null);
+    setManagerId(null);
+    setSubManagerId(null);
+    setLeaderId(null);
+    setExpanded(false);
+  };
 
 
   // 濃めのグレーアウト
@@ -142,7 +136,23 @@ const handleSubmit = () => {
         <Typography>営業メンバー追加</Typography>
       </AccordionSummary>
       <AccordionDetails>
-        {/* 1段目: 役職・名前 */}
+        {/* 1. メンバー名 */}
+        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+          1. 追加するメンバー名を入力してください
+        </Typography>
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 2 }}>
+          <TextField
+            label="名前"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            sx={{ flex: "1 1 200px", ...disabledStyle }}
+          />
+        </Box>
+
+        {/* 2. 役職 */}
+        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+          2. 追加するメンバーの役職を入力してください
+        </Typography>
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 2 }}>
           <TextField
             select
@@ -155,20 +165,17 @@ const handleSubmit = () => {
             <MenuItem value="manager">課長</MenuItem>
             <MenuItem value="sub_manager">係長</MenuItem>
             <MenuItem value="leader">主任</MenuItem>
-            <MenuItem value="member-none">メンバー（なし）</MenuItem>
+            <MenuItem value="member-none">メンバー</MenuItem>
             <MenuItem value="member-sub">メンバー（副主任）</MenuItem>
           </TextField>
-
-          <TextField
-            label="名前"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            sx={{ flex: "1 1 200px", ...disabledStyle }}
-            disabled={!roleSelected}
-          />
         </Box>
 
-        {/* 2段目: 所属系 */}
+        {/* 3. 所属情報 */}
+        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+          3. 所属部署を選択してください
+        </Typography>
+
+        {/* 課・係 */}
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 2 }}>
           <TextField
             select
@@ -197,7 +204,10 @@ const handleSubmit = () => {
           </TextField>
         </Box>
 
-        {/* 3段目: 上司系 */}
+        <Typography variant="subtitle1" sx={{ mb: 1 }}>
+          4. 直属上司を選択してください
+        </Typography>
+        {/* 上司（課長・係長・主任） */}
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
           <TextField
             select
@@ -239,12 +249,14 @@ const handleSubmit = () => {
           </TextField>
         </Box>
 
+        {/* 追加ボタン */}
         <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
           <Button variant="contained" onClick={handleSubmit} disabled={!roleSelected}>
             追加
           </Button>
         </Box>
       </AccordionDetails>
+
     </Accordion>
   );
 }
