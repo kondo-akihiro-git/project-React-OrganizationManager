@@ -4,11 +4,24 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { Tree, TreeNode } from "react-organizational-chart";
 import { getSalesAssignment, OrganizationItem } from "../network/getSalesAssignment";
+// import CreateSalesUserDial from "../dialogs/CreateSalesUserDialog";
+import { Button } from "@mui/material";
+import CreateSalesUserAccordion from "../dialogs/CreateSalesUserAccordion";
+
 
 // ==========================
 // メインの画面コンポーネント
 // ==========================
 export default function SalesPage() {
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const handleCreateUser = async (data: any) => {
+    console.log("送信データ", data);
+    // TODO: API 呼び出し fetch("/create_sales_user", {...})
+  };
+
+
   // --------------------------
   // state（アプリ内の変数のようなもの）
   // --------------------------
@@ -454,6 +467,13 @@ const renderOrganizationItem = (item: OrganizationItem) => {
       <Typography variant="h5" sx={{ marginBottom: 2 }}>
         営業部 組織図
       </Typography>
+
+
+{/* <Button variant="contained" onClick={() => setDialogOpen(true)}>追加</Button> */}
+
+      <Box sx={{ mb: 4 }}>
+        <CreateSalesUserAccordion onCreate={handleCreateUser} />
+      </Box>
 
       {/* 縮小用の枠 */}
       <Box ref={containerRef} sx={{ width: "100%", overflowX: "auto", overflowY: "hidden" }}>
