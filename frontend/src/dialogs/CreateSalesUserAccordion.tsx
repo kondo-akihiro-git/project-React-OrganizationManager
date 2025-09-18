@@ -11,85 +11,60 @@ import {
   Button,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { OrganizationItem } from "../network/getSalesAssignment";
 
 interface CreateSalesUserAccordionProps {
   onCreate: (data: any) => void;
+  organizationData: OrganizationItem[];
 }
 
-export default function CreateSalesUserAccordion({ onCreate }: CreateSalesUserAccordionProps) {
+export default function CreateSalesUserAccordion({
+  onCreate,
+  organizationData,
+}: CreateSalesUserAccordionProps) {
   const [expanded, setExpanded] = useState(false);
-  const [role, setRole] = useState<string>(""); // デフォルト未選択
+  const [role, setRole] = useState<string>("");
   const [name, setName] = useState("");
-  const [title, setTitle] = useState(""); // 今は役職メニューに統合
+  const [title, setTitle] = useState("");
   const [departmentId, setDepartmentId] = useState<number | null>(null);
   const [teamId, setTeamId] = useState<number | null>(null);
   const [managerId, setManagerId] = useState<number | null>(null);
   const [subManagerId, setSubManagerId] = useState<number | null>(null);
   const [leaderId, setLeaderId] = useState<number | null>(null);
 
-  // 仮データ
-  const [departments] = useState([
-    { id: 1, name: "第一営業課（PP/BP）" },
-    { id: 2, name: "第二営業課（受託）" },
-    { id: 3, name: "第三営業課（新規開拓）" },
-    { id: 4, name: "営業事務" },
-  ]);
-  const [teams] = useState([
-    { id: 1, name: "SES(PP)" },
-    { id: 2, name: "SES(BP)" },
-    { id: 3, name: "受託" },
-    { id: 4, name: "トップセール" },
-    { id: 5, name: "新規開拓" },
-  ]);
-  const [managers] = useState([
-    { id: 1, name: "佐藤 絵里子" },
-    { id: 2, name: "宮本 和世士" },
-  ]);
-  const [subManagers] = useState([
-    { id: 1, name: "長谷 健太朗" },
-    { id: 2, name: "作本 薫宏" },
-  ]);
-  const [leaders] = useState([
-    { id: 1, name: "柴山 朋希" },
-    { id: 2, name: "男澤 純一" },
-    { id: 3, name: "津田 秦隆" },
-    { id: 4, name: "飯塚 美穂" },
-  ]);
+  // --- title ベースで全件フィルタ（ネスト関係は考慮しない） ---
+  function findItemsByTitle(items: OrganizationItem[], targetTitle: string): OrganizationItem[] {
+    let result: OrganizationItem[] = [];
+    function traverse(node: OrganizationItem) {
+      if (node.title === targetTitle) result.push(node);
+      if (node.children) node.children.forEach(traverse);
+    }
+    items.forEach(traverse);
+    return result;
+  }
 
-  const roleSelected = role !== "";
+  const departments = findItemsByTitle(organizationData, "課");
+  const teams = findItemsByTitle(organizationData, "係");
+  const filteredManagers = findItemsByTitle(organizationData, "課長");
+  const filteredSubManagers = findItemsByTitle(organizationData, "係長");
+  const filteredLeaders = findItemsByTitle(organizationData, "主任");
 
   // --- 役職ごとの入力可否 ---
-  const isDepartmentDisabled =
-    !role || !(role === "manager" || role === "sub_manager" || role === "leader" || role === "member-none" || role === "member-sub");
+  const isDepartmentEnabled = role !== "";
+  const isTeamEnabled =
+    role === "sub_manager" || role === "leader" || role === "member-none" || role === "member-sub";
+  const isManagerEnabled = role === "sub_manager" || role === "leader" || role.startsWith("member");
+  const isSubManagerEnabled = role === "leader" || role.startsWith("member");
+  const isLeaderEnabled = role.startsWith("member");
 
-  const isTeamDisabled =
-    !role || !(role === "sub_manager" || role === "leader" || role === "member-none" || role === "member-sub");
-
-  const isManagerDisabled =
-    !role || !(role === "sub_manager" || role === "leader" || role === "member-none" || role === "member-sub");
-
-  const isSubManagerDisabled =
-    !role || !(role === "leader" || role === "member-none" || role === "member-sub");
-
-  const isLeaderDisabled =
-    !role || !(role === "member-none" || role === "member-sub");
-
-
+  // roleが変わったら不要な入力はクリア
   useEffect(() => {
-    if (isDepartmentDisabled) setDepartmentId(null);
-    if (isTeamDisabled) setTeamId(null);
-    if (isManagerDisabled) setManagerId(null);
-    if (isSubManagerDisabled) setSubManagerId(null);
-    if (isLeaderDisabled) setLeaderId(null);
-    if (role !== "member") setTitle("");
-  }, [
-    isDepartmentDisabled,
-    isTeamDisabled,
-    isManagerDisabled,
-    isSubManagerDisabled,
-    isLeaderDisabled,
-    role,
-  ]);
+    if (!isDepartmentEnabled) setDepartmentId(null);
+    if (!isTeamEnabled) setTeamId(null);
+    if (!isManagerEnabled) setManagerId(null);
+    if (!isSubManagerEnabled) setSubManagerId(null);
+    if (!isLeaderEnabled) setLeaderId(null);
+  }, [role]);
 
   const roleToTitleMap: Record<string, string> = {
     manager: "課長",
@@ -111,7 +86,6 @@ export default function CreateSalesUserAccordion({ onCreate }: CreateSalesUserAc
       sub_manager_id: subManagerId,
       leader_id: leaderId,
     });
-    // フォーム初期化
     setName("");
     setRole("");
     setTitle("");
@@ -123,8 +97,6 @@ export default function CreateSalesUserAccordion({ onCreate }: CreateSalesUserAc
     setExpanded(false);
   };
 
-
-  // 濃めのグレーアウト
   const disabledStyle = {
     "& .MuiInputBase-input.Mui-disabled": { cursor: "not-allowed", color: "#666" },
     "& .MuiInputBase-root.Mui-disabled": { backgroundColor: "#ddd" },
@@ -140,7 +112,7 @@ export default function CreateSalesUserAccordion({ onCreate }: CreateSalesUserAc
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
           1. 追加するメンバー名を入力してください
         </Typography>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 2 }}>
+        <Box sx={{ display: "flex", gap: 1.5, mb: 2 }}>
           <TextField
             label="名前"
             value={name}
@@ -153,7 +125,7 @@ export default function CreateSalesUserAccordion({ onCreate }: CreateSalesUserAc
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
           2. 追加するメンバーの役職を入力してください
         </Typography>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 2 }}>
+        <Box sx={{ display: "flex", gap: 1.5, mb: 2 }}>
           <TextField
             select
             label="役職"
@@ -170,20 +142,18 @@ export default function CreateSalesUserAccordion({ onCreate }: CreateSalesUserAc
           </TextField>
         </Box>
 
-        {/* 3. 所属情報 */}
+        {/* 3. 所属部署 */}
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
           3. 所属部署を選択してください
         </Typography>
-
-        {/* 課・係 */}
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 2 }}>
+        <Box sx={{ display: "flex", gap: 1.5, mb: 2 }}>
           <TextField
             select
             label="課"
             value={departmentId ?? ""}
             onChange={(e) => setDepartmentId(Number(e.target.value))}
             sx={{ flex: "1 1 200px", ...disabledStyle }}
-            disabled={isDepartmentDisabled}
+            disabled={!isDepartmentEnabled}
           >
             {departments.map((d) => (
               <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
@@ -196,7 +166,7 @@ export default function CreateSalesUserAccordion({ onCreate }: CreateSalesUserAc
             value={teamId ?? ""}
             onChange={(e) => setTeamId(Number(e.target.value))}
             sx={{ flex: "1 1 200px", ...disabledStyle }}
-            disabled={isTeamDisabled}
+            disabled={!isTeamEnabled}
           >
             {teams.map((t) => (
               <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
@@ -204,20 +174,20 @@ export default function CreateSalesUserAccordion({ onCreate }: CreateSalesUserAc
           </TextField>
         </Box>
 
+        {/* 4. 直属上司 */}
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
           4. 直属上司を選択してください
         </Typography>
-        {/* 上司（課長・係長・主任） */}
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
+        <Box sx={{ display: "flex", gap: 1.5 }}>
           <TextField
             select
             label="課長"
             value={managerId ?? ""}
             onChange={(e) => setManagerId(Number(e.target.value))}
             sx={{ flex: "1 1 200px", ...disabledStyle }}
-            disabled={isManagerDisabled}
+            disabled={!isManagerEnabled}
           >
-            {managers.map((m) => (
+            {filteredManagers.map((m) => (
               <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
             ))}
           </TextField>
@@ -228,9 +198,9 @@ export default function CreateSalesUserAccordion({ onCreate }: CreateSalesUserAc
             value={subManagerId ?? ""}
             onChange={(e) => setSubManagerId(Number(e.target.value))}
             sx={{ flex: "1 1 200px", ...disabledStyle }}
-            disabled={isSubManagerDisabled}
+            disabled={!isSubManagerEnabled}
           >
-            {subManagers.map((s) => (
+            {filteredSubManagers.map((s) => (
               <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
             ))}
           </TextField>
@@ -241,22 +211,20 @@ export default function CreateSalesUserAccordion({ onCreate }: CreateSalesUserAc
             value={leaderId ?? ""}
             onChange={(e) => setLeaderId(Number(e.target.value))}
             sx={{ flex: "1 1 200px", ...disabledStyle }}
-            disabled={isLeaderDisabled}
+            disabled={!isLeaderEnabled}
           >
-            {leaders.map((l) => (
+            {filteredLeaders.map((l) => (
               <MenuItem key={l.id} value={l.id}>{l.name}</MenuItem>
             ))}
           </TextField>
         </Box>
 
-        {/* 追加ボタン */}
-        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
-          <Button variant="contained" onClick={handleSubmit} disabled={!roleSelected}>
+        <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
+          <Button variant="contained" onClick={handleSubmit} disabled={!role}>
             追加
           </Button>
         </Box>
       </AccordionDetails>
-
     </Accordion>
   );
 }

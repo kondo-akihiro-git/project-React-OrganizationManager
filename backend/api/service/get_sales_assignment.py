@@ -41,7 +41,7 @@ async def get_sales_assignment() -> List[Dict[str, Any]]:
         # id をキーにして lookup 用辞書を作ります。
         # ここで各要素に 'children' を初期化しておくと、後で子要素を append できます。
         department_by_id: Dict[int, Dict[str, Any]] = {
-            department["id"]: {**department, "children": []}
+            department["id"]: {**department, "title": "課", "children": []}
             for department in department_records
         }
 
@@ -81,7 +81,7 @@ async def get_sales_assignment() -> List[Dict[str, Any]]:
 
         # team_by_id に children を初期化
         team_by_id: Dict[int, Dict[str, Any]] = {
-            team["id"]: {**team, "children": []}
+            team["id"]: {**team, "title": "係", "children": []}
             for team in team_records
         }
 

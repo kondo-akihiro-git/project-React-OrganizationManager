@@ -472,7 +472,7 @@ const renderOrganizationItem = (item: OrganizationItem) => {
 {/* <Button variant="contained" onClick={() => setDialogOpen(true)}>追加</Button> */}
 
       <Box sx={{ mb: 4 }}>
-        <CreateSalesUserAccordion onCreate={handleCreateUser} />
+        <CreateSalesUserAccordion onCreate={handleCreateUser} organizationData={organizationData}/>
       </Box>
 
       {/* 縮小用の枠 */}
