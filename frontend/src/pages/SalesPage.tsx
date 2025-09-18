@@ -194,7 +194,70 @@ export default function SalesPage() {
 // 主任グループ（主任＋配下のメンバーたち）をまとめる
 // 主任をまとめて表示する
 
+// const renderOrganizationItem = (item: OrganizationItem) => {
+//   const members = item.children.filter(
+//     (child) => child.title === "メンバー" || child.title === "副主任"
+//   );
+//   const subOrganizations = item.children.filter(
+//     (child) => child.title !== "メンバー" && child.title !== "副主任"
+//   );
 
+//   const shunins = subOrganizations.filter((child) => child.title === "主任");
+//   const others = subOrganizations.filter((child) => child.title !== "主任");
+
+//   const label = (
+//     <Box sx={getBoxStyle(item)}>
+//       {item.title ? `${item.title} ${item.name}` : item.name}
+//       {item.title !== "係" && members.length > 0 && renderMembers(members)}
+//     </Box>
+//   );
+
+//   // 子ノードが全くない場合は、単純にラベルだけ返す
+//   if (shunins.length === 0 && others.length === 0) {
+//     // 係かどうかにかかわらず、メンバーだけなら線を出さない
+//     if (item.title === "係" && members.length > 0) {
+//       return (
+//         <TreeNode
+//           key={item.id}
+//           label={<Box sx={getBoxStyle({ ...item, name: "", title: "" })}>{renderMembers(members)}</Box>}
+//         />
+//       );
+//     }
+//     return <TreeNode key={item.id} label={label} />;
+//   }
+
+//   return (
+//     <TreeNode key={item.id} label={label}>
+//       {shunins.length > 1 ? (
+//         <TreeNode
+//           label={
+//             <Box
+//               sx={{
+//                 border: "2px dashed #1976d2",
+//                 borderRadius: 1,
+//                 padding: 1,
+//                 display: "grid",
+//                 gridTemplateColumns: `repeat(${Math.min(shunins.length, 3)}, 1fr)`,
+//                 gap: 1,
+//               }}
+//             >
+//               {shunins.map((shunin) => (
+//                 <Box key={shunin.id} sx={getBoxStyle(shunin)}>
+//                   {shunin.title} {shunin.name}
+//                   {shunin.children.length > 0 && renderMembers(shunin.children)}
+//                 </Box>
+//               ))}
+//             </Box>
+//           }
+//         />
+//       ) : (
+//         shunins.map((shunin) => renderOrganizationItem(shunin))
+//       )}
+
+//       {others.map((sub) => renderOrganizationItem(sub))}
+//     </TreeNode>
+//   );
+// };
 
 const renderOrganizationItem = (item: OrganizationItem) => {
   const members = item.children.filter(
@@ -204,21 +267,39 @@ const renderOrganizationItem = (item: OrganizationItem) => {
     (child) => child.title !== "メンバー" && child.title !== "副主任"
   );
 
-  // 主任とそれ以外を分ける
   const shunins = subOrganizations.filter((child) => child.title === "主任");
   const others = subOrganizations.filter((child) => child.title !== "主任");
 
-  // 自分のボックス
+  // 自分のボックス（係でも名前を表示）
   const label = (
     <Box sx={getBoxStyle(item)}>
       {item.title ? `${item.title} ${item.name}` : item.name}
-      {members.length > 0 && renderMembers(members)}
+      {item.title !== "係" && members.length > 0 && renderMembers(members)}
     </Box>
   );
 
+  // 末端ノード（主任も他の組織もおらず、メンバーがいない場合、または係でメンバーがいる場合）
+  if (shunins.length === 0 && others.length === 0) {
+    // 係でメンバーがいる場合、メンバー専用のボックスを表示
+    if (item.title === "係" && members.length > 0) {
+      return (
+        <TreeNode key={item.id} label={label}>
+          <TreeNode
+            label={
+              <Box sx={getBoxStyle({ ...item, name: "", title: "" })}>
+                {renderMembers(members)}
+              </Box>
+            }
+          />
+        </TreeNode>
+      );
+    }
+    // メンバーがいない場合（例: トップセール、新規開拓）、ボックスのみで線なし
+    return <TreeNode key={item.id} label={label} />;
+  }
+
   return (
     <TreeNode key={item.id} label={label}>
-      {/* 主任まとめボックス（複数いる場合のみ） */}
       {shunins.length > 1 ? (
         <TreeNode
           label={
@@ -228,7 +309,7 @@ const renderOrganizationItem = (item: OrganizationItem) => {
                 borderRadius: 1,
                 padding: 1,
                 display: "grid",
-                gridTemplateColumns: `repeat(${Math.min(shunins.length, 3)}, 1fr)`, // 必要に応じて動的に
+                gridTemplateColumns: `repeat(${Math.min(shunins.length, 3)}, 1fr)`,
                 gap: 1,
               }}
             >
@@ -242,15 +323,68 @@ const renderOrganizationItem = (item: OrganizationItem) => {
           }
         />
       ) : (
-        // 主任が1人だけならそのまま描画（点線枠は作らない）
         shunins.map((shunin) => renderOrganizationItem(shunin))
       )}
-
-      {/* 主任以外の下位組織 */}
       {others.map((sub) => renderOrganizationItem(sub))}
     </TreeNode>
   );
 };
+
+// const renderOrganizationItem = (item: OrganizationItem) => {
+//   const members = item.children.filter(
+//     (child) => child.title === "メンバー" || child.title === "副主任"
+//   );
+//   const subOrganizations = item.children.filter(
+//     (child) => child.title !== "メンバー" && child.title !== "副主任"
+//   );
+
+//   // 主任とそれ以外を分ける
+//   const shunins = subOrganizations.filter((child) => child.title === "主任");
+//   const others = subOrganizations.filter((child) => child.title !== "主任");
+
+//   // 自分のボックス
+//   const label = (
+//     <Box sx={getBoxStyle(item)}>
+//       {item.title ? `${item.title} ${item.name}` : item.name}
+//       {members.length > 0 && renderMembers(members)}
+//     </Box>
+//   );
+
+//   return (
+//     <TreeNode key={item.id} label={label}>
+//       {/* 主任まとめボックス（複数いる場合のみ） */}
+//       {shunins.length > 1 ? (
+//         <TreeNode
+//           label={
+//             <Box
+//               sx={{
+//                 border: "2px dashed #1976d2",
+//                 borderRadius: 1,
+//                 padding: 1,
+//                 display: "grid",
+//                 gridTemplateColumns: `repeat(${Math.min(shunins.length, 3)}, 1fr)`, // 必要に応じて動的に
+//                 gap: 1,
+//               }}
+//             >
+//               {shunins.map((shunin) => (
+//                 <Box key={shunin.id} sx={getBoxStyle(shunin)}>
+//                   {shunin.title} {shunin.name}
+//                   {shunin.children.length > 0 && renderMembers(shunin.children)}
+//                 </Box>
+//               ))}
+//             </Box>
+//           }
+//         />
+//       ) : (
+//         // 主任が1人だけならそのまま描画（点線枠は作らない）
+//         shunins.map((shunin) => renderOrganizationItem(shunin))
+//       )}
+
+//       {/* 主任以外の下位組織 */}
+//       {others.map((sub) => renderOrganizationItem(sub))}
+//     </TreeNode>
+//   );
+// };
 
 
 
