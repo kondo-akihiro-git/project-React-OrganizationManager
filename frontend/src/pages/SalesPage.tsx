@@ -1,249 +1,190 @@
-// frontend/src/pages/SalesPage.tsx
-import { useEffect, useState, useRef, useLayoutEffect } from "react";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
+// ========== 必要なものをインポート ========== //
+// - Reactの機能（状態管理やDOM参照）とMUIコンポーネント（Box, Typography）を使う
+// - react-organizational-chartでツリー構造を描画
+// - APIからデータを取得するための関数と型をインポート
+import { useEffect, useState, useRef } from "react";
+import { Box, Typography } from "@mui/material";
 import { Tree, TreeNode } from "react-organizational-chart";
 import { getSalesAssignment, OrganizationItem } from "../network/getSalesAssignment";
-import { Button } from "@mui/material";
-import CreateSalesUserAccordion from "../dialogs/CreateSalesUserAccordion";
 
-// このコンポーネントは、営業部の組織図を表示するメインのページです。
-// 組織データをAPIから取得し、ツリー構造で視覚化します。
-// 初心者向け: Reactの関数コンポーネントとして定義。状態管理とライフサイクルフックを使って動的な表示を実現します。
+// ========== メインのコンポーネント ========== //
+// SalesPage: 営業部の組織図を表示する画面
 export default function SalesPage() {
-
-  // ユーザー追加ダイアログの開閉状態を管理するstate。
-  // なぜ必要か: ダイアログを開く/閉じる動作を制御するため。stateが変わるとコンポーネントが再レンダリングされ、UIが更新されます。
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  // ユーザー作成時のハンドラー関数。
-  // なぜ必要か: フォームから送信されたデータを処理し、将来的にAPIを呼び出してサーバーにデータを送信するため。ここではログ出力のみですが、拡張可能です。
-  const handleCreateUser = async (data: any) => {
-    console.log("送信データ", data);
-    // TODO: API 呼び出し fetch("/create_sales_user", {...})
-  };
-
-  // 組織データを保持するstate。初期値は空配列。
-  // なぜ必要か: APIから取得したデータをコンポーネント内で保持し、組織図を描画するために使用。stateを使うことでデータ変更時にUIが自動更新されます。
-  const [organizationData, setOrganizationData] = useState<OrganizationItem[]>([]);
-
-  // 組織図のコンテナ要素を参照するためのref。
-  // なぜ必要か: DOM要素の幅を測定して縮小率を計算するため。refを使うと、Reactが管理するDOMに直接アクセスできます。
+  // ========== 状態と参照の定義 ========== //
+  // - data: APIから取得した組織データを保持（初期値は空配列）
+  // - scale: 組織図の拡大/縮小率（初期値は1で等倍）
+  // - containerRef: 組織図の幅を測定するための参照
+  const [data, setData] = useState<OrganizationItem[]>([]);
+  const [scale, setScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // 組織図の縮小率を管理するstate。初期値は1（等倍）。
-  // なぜ必要か: 組織図が画面幅を超える場合に自動縮小するため。stateが変わるとスタイルが更新され、UIが調整されます。
-  const [scale, setScale] = useState(1);
-
-  // APIから組織データを取得するuseEffect。
-  // なぜ必要か: コンポーネントがマウントされた時に一度だけデータをフェッチするため。依存配列が空なので初回のみ実行され、無駄な再取得を防ぎます。
+  // ========== データ取得 ========== //
+  // - ページが読み込まれた時にAPIから組織データを取得
+  // - useEffectで初回のみ実行（依存配列[]で再実行を防止）
   useEffect(() => {
-    const fetchData = async () => {
-      const data = await getSalesAssignment();
-      setOrganizationData(data);
-    };
-    fetchData();
+    getSalesAssignment().then(setData);
   }, []);
 
-  // ウィンドウサイズ変更時に縮小率を調整するuseLayoutEffect。
-  // なぜ必要か: 描画後にDOMサイズを測定して組織図を画面に収めるため。useLayoutEffectは同期的に実行され、ちらつきを防ぎます。組織データ変更時やリサイズ時に再計算。
-  useLayoutEffect(() => {
+  // ========== 画面サイズに合わせて縮小率を調整 ========== //
+  // - 組織図が画面に収まらない場合、自動で縮小して全体が見えるようにする
+  // - containerRefで組織図のコンテナの幅を測定
+  // - 画面幅より組織図が大きければ、縮小率（scale）を計算して適用
+  // - ウィンドウサイズが変わるたびに再計算
+  useEffect(() => {
     const handleResize = () => {
-      if (!containerRef.current) return;
-
-      const parentWidth = containerRef.current.offsetWidth;
-      const scrollWidth = containerRef.current.scrollWidth;
-
-      if (scrollWidth > parentWidth) {
-        setScale(parentWidth / scrollWidth);
-      } else {
-        setScale(1);
+      if (containerRef.current) {
+        const parentWidth = containerRef.current.offsetWidth; // 画面の幅
+        const scrollWidth = containerRef.current.scrollWidth; // 組織図の幅
+        setScale(scrollWidth > parentWidth ? parentWidth / scrollWidth : 1);
       }
     };
-
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [organizationData]);
+  }, [data]);
 
-  // 組織アイテムのボックススタイルを返す関数。
-  // なぜ必要か: 役職ごとに背景色を変えて視覚的に区別するため。スタイルオブジェクトを返すことで、MUIのsxプロパティに適用しやすくなります。
-  const getBoxStyle = (item: OrganizationItem) => {
-    let bgColor = "#e3f2fd";
+  // ========== ボックスのスタイルを定義する関数 ========== //
+  // - 組織図の各ボックス（課、課長など）の見た目を定義
+  // - 役職が「メンバー」や「副主任」なら薄い青、それ以外は濃い青の背景
+  // - 枠線、角丸、文字サイズなどを設定
+  const getBoxStyle = (item: OrganizationItem) => ({
+    padding: 1,
+    border: "1px solid #1976d2",
+    borderRadius: 1,
+    backgroundColor: item.title === "メンバー" || item.title === "副主任" ? "#e3f2fd" : "#bbdefb",
+    textAlign: "center" as const,
+    fontSize: "0.75rem",
+  });
 
-    if (item.title === "副主任") {
-      bgColor = "#e3f2fd";
-    } else if (item.title === "メンバー") {
-      bgColor = "#e3f2fd";
-    } else {
-      bgColor = "#bbdefb";
-    }
+  // ========== テキストカラーを定義する関数 ========== //
+  // - 存在しない役職（課長、係、係長、主任でexists: false）はグレー文字
+  // - それ以外（メンバー、副主任、存在する役職）は黒文字
+  const getTextColor = (item: OrganizationItem) => ({
+    color: item.exists === false && ["課長", "係", "係長", "主任"].includes(item.title) ? "#757575" : "#000000",
+  });
 
-    return {
-      padding: 1,
-      border: "1px solid #1976d2",
-      borderRadius: 1,
-      backgroundColor: bgColor,
-      textAlign: "center" as const,
-      whiteSpace: "nowrap" as const,
-      overflowWrap: "anywhere" as const,
-      fontSize: "0.75rem",
-    };
-  };
+  // ========== ルート（営業部）のスタイルを定義する関数 ========== //
+  // - 組織図のトップ（「営業部」）のボックススタイルを定義
+  // - 他のボックスと異なる濃い青の背景と太い枠線
+  const getRootBoxStyle = () => ({
+    padding: 1,
+    border: "2px solid #1976d2",
+    borderRadius: 1,
+    backgroundColor: "#90caf9",
+    textAlign: "center" as const,
+  });
 
-  // メンバーリストを縦に並べて描画する関数。
-  // なぜ必要か: 複数のメンバーをコンパクトに表示するため。Boxコンポーネントを使って縦並びを実現し、各メンバーを個別のボックスで区切ります。
-  const renderMembers = (members: OrganizationItem[]) => {
-    return (
-      <Box
-        sx={{
-          fontSize: "0.7rem",
-          marginTop: 0.5,
-          display: "flex",
-          flexDirection: "column",
-          gap: 0.5,
-        }}
-      >
-        {members.map((member) => (
-          <Box
-            key={member.id}
-            sx={{
-              backgroundColor:
-                member.title === "副主任" ? "#e3f2fd" : "#e3f2fd",
-              borderRadius: 0.5,
-              padding: "1px 4px",
-            }}
-          >
-            {member.title ? `${member.title} ${member.name}` : member.name}
-          </Box>
-        ))}
-      </Box>
-    );
-  };
+  // ========== 複数リーダーのグリッドスタイルを定義する関数 ========== //
+  // - 主任が複数いる場合、点線枠でまとめてグリッド表示するスタイル
+  // - 最大3列のグリッドで、主任のボックスを並べる
+  const getLeadersGridStyle = (count: number) => ({
+    border: "2px dashed #1976d2",
+    borderRadius: 1,
+    padding: 1,
+    display: "grid",
+    gridTemplateColumns: `repeat(${Math.min(count, 3)}, 1fr)`,
+    gap: 1,
+  });
 
-  // 組織アイテムを再帰的に描画する関数。ツリー構造を構築します。
-  // なぜ必要か: 組織の階層（課、係、主任、メンバー）をツリーとして視覚化するため。再帰呼び出しで深い階層も扱え、react-organizational-chartのTreeNodeを使います。
-  const renderOrganizationItem = (item: OrganizationItem) => {
-    // 子要素からメンバーと副主任を抽出。
-    // なぜ必要か: メンバーを特別扱い（縦並び表示）するため。フィルターで分類し、後で描画に使います。
-    const members = item.children.filter(
-      (child) => child.title === "メンバー" || child.title === "副主任"
-    );
-    // 子要素から下位組織（主任や係など）を抽出。
-    // なぜ必要か: 再帰的に下位階層を描画するため。メンバー以外を分離します。
-    const subOrganizations = item.children.filter(
-      (child) => child.title !== "メンバー" && child.title !== "副主任"
-    );
+  // ========== メンバーと副主任を縦に並べて表示する関数 ========== //
+  // - メンバーや副主任を縦に並べて表示（主任の下など）
+  // - 各メンバーを小さなボックスで表示、名前のみ表示（役職は非表示）
+  // - メンバーと副主任は常に黒文字で表示
+  const renderMembers = (members: OrganizationItem[]) => (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mt: 0.5 }}>
+      {members.map((member) => (
+        <Box key={member.id} sx={{ ...getBoxStyle(member), ...getTextColor(member), padding: "2px 4px" }}>
+          {member.name}
+        </Box>
+      ))}
+    </Box>
+  );
 
-    // 下位組織から主任を抽出。
-    // なぜ必要か: 主任をグループ化して表示するため（複数いる場合点線枠でまとめる）。
-    const shunins = subOrganizations.filter((child) => child.title === "主任");
-    // 主任以外の下位組織を抽出。
-    // なぜ必要か: 主任とそれ以外を分けて処理するため。柔軟なレイアウトを実現します。
-    const others = subOrganizations.filter((child) => child.title !== "主任");
+  // ========== 組織図の各アイテムを描画する関数 ========== //
+  // - 組織の階層（課、課長、係など）を再帰的にツリー構造で描画
+  const renderItem = (item: OrganizationItem) => {
+    // - 子要素を「メンバー/副主任」と「それ以外」に分ける
+    // - members: メンバーと副主任（縦に並べて表示）
+    // - subItems: メンバーと副主任以外（課長、係、主任など）
+    // - leaders: 主任のみ抽出
+    // - nonLeaders: 主任以外（課長、係など）
+    const members = item.children.filter((child) => child.title === "メンバー" || child.title === "副主任");
+    const subItems = item.children.filter((child) => child.title !== "メンバー" && child.title !== "副主任");
+    const leaders = subItems.filter((child) => child.title === "主任");
+    const nonLeaders = subItems.filter((child) => child.title !== "主任");
 
-    // 現在のアイテムのラベル（ボックス）を作成。
-    // なぜ必要か: TreeNodeのlabelとして使用。名前とメンバーを含めて表示します。
+    // - 現在のアイテムのボックスを作成
+    // - 課長、係、係長、主任で存在しない場合（exists: false）は「〜なし」を表示
+    // - 課長、係長、主任の場合のみ役職を表示
+    // - メンバーがいれば縦に並べて表示（係の場合は除く）
+    // - 存在しない場合はグレー文字、存在する場合は黒文字
+    const labelText =
+      item.exists === false && ["課長", "係", "係長", "主任"].includes(item.title)
+        ? `${item.title}なし`
+        : ["課長", "係長", "主任"].includes(item.title)
+        ? `${item.title} ${item.name}`
+        : item.name;
+
     const label = (
-      <Box sx={getBoxStyle(item)}>
-        {item.title ? `${item.title} ${item.name}` : item.name}
+      <Box sx={{ ...getBoxStyle(item), ...getTextColor(item) }}>
+        {labelText}
         {item.title !== "係" && members.length > 0 && renderMembers(members)}
       </Box>
     );
 
-    // 末端ノードの場合の処理。
-    // なぜ必要か: 不要な線を防ぎ、シンプルに表示するため。子がいない場合に子ノードを追加しない。
-    if (shunins.length === 0 && others.length === 0) {
-      if (item.title === "係" && members.length > 0) {
-        return (
-          <TreeNode key={item.id} label={label}>
-            <TreeNode
-              label={
-                <Box sx={getBoxStyle({ ...item, name: "", title: "" })}>
-                  {renderMembers(members)}
-                </Box>
-              }
-            />
-          </TreeNode>
-        );
-      }
-      return <TreeNode key={item.id} label={label} />;
+    // - 子要素がない場合の描画
+    // - 係でメンバーがいる場合、メンバーを別ノードで表示
+    // - それ以外は単純なノードとして表示
+    if (!leaders.length && !nonLeaders.length) {
+      return item.title === "係" && members.length > 0 ? (
+        <TreeNode key={item.id} label={label}>
+          <TreeNode label={<Box sx={{ ...getBoxStyle(item), ...getTextColor(item) }}>{renderMembers(members)}</Box>} />
+        </TreeNode>
+      ) : (
+        <TreeNode key={item.id} label={label} />
+      );
     }
 
-    // 下位組織がある場合のツリーノード。
-    // なぜ必要か: 階層構造を構築するため。主任をグループ化し、再帰で下位を描画します。
+    // - 子要素がある場合の描画
+    // - 主任が複数なら点線枠でグリッド表示
+    // - 主任が1人なら通常のツリー表示
+    // - nonLeaders（課長や係など）を再帰的に描画
     return (
       <TreeNode key={item.id} label={label}>
-        {shunins.length > 1 ? (
+        {leaders.length > 1 ? (
           <TreeNode
             label={
-              <Box
-                sx={{
-                  border: "2px dashed #1976d2",
-                  borderRadius: 1,
-                  padding: 1,
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${Math.min(shunins.length, 3)}, 1fr)`,
-                  gap: 1,
-                }}
-              >
-                {shunins.map((shunin) => (
-                  <Box key={shunin.id} sx={getBoxStyle(shunin)}>
-                    {shunin.title} {shunin.name}
-                    {shunin.children.length > 0 && renderMembers(shunin.children)}
+              <Box sx={getLeadersGridStyle(leaders.length)}>
+                {leaders.map((leader) => (
+                  <Box key={leader.id} sx={{ ...getBoxStyle(leader), ...getTextColor(leader) }}>
+                    {leader.title} {leader.name}
+                    {renderMembers(leader.children)}
                   </Box>
                 ))}
               </Box>
             }
           />
         ) : (
-          shunins.map((shunin) => renderOrganizationItem(shunin))
+          leaders.map(renderItem)
         )}
-        {others.map((sub) => renderOrganizationItem(sub))}
+        {nonLeaders.map(renderItem)}
       </TreeNode>
     );
   };
 
-  // JSXで画面を描画。
-  // なぜ必要か: Reactのreturn文でUIを定義。タイトル、ユーザー追加フォーム、組織図を表示します。
+  // ========== 画面全体の描画 ========== //
+  // - タイトル「営業部 組織図」を表示
+  // - 組織図をスケール調整して表示
+  // - ルートノード（営業部）からツリーを描画
   return (
-    <Box sx={{ padding: 2, overflow: "hidden" }}>
-      <Typography variant="h5" sx={{ marginBottom: 2 }}>
+    <Box sx={{ padding: 2 }}>
+      <Typography variant="h5" sx={{ mb: 2 }}>
         営業部 組織図
       </Typography>
-
-      <Box sx={{ mb: 4 }}>
-        <CreateSalesUserAccordion onCreate={handleCreateUser} organizationData={organizationData}/>
-      </Box>
-
-      <Box ref={containerRef} sx={{ width: "100%", overflowX: "auto", overflowY: "hidden" }}>
-        <Box
-          sx={{
-            transform: `scale(${scale})`,
-            transformOrigin: "top left",
-            display: "inline-block",
-            minWidth: "100%",
-          }}
-        >
-          <Tree
-            label={
-              <Box
-                sx={{
-                  padding: 1,
-                  border: "2px solid #1976d2",
-                  borderRadius: 1,
-                  backgroundColor: "#90caf9",
-                  textAlign: "center",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                営業部
-              </Box>
-            }
-          >
-            {organizationData.map((department) =>
-              renderOrganizationItem(department)
-            )}
+      <Box ref={containerRef} sx={{ overflowX: "auto" }}>
+        <Box sx={{ transform: `scale(${scale})`, transformOrigin: "top left", minWidth: "100%" }}>
+          <Tree label={<Box sx={getRootBoxStyle()}>営業部</Box>}>
+            {data.map(renderItem)}
           </Tree>
         </Box>
       </Box>

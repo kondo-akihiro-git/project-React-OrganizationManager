@@ -155,9 +155,9 @@ export default function CreateSalesUserAccordion({
             sx={{ flex: "1 1 200px", ...disabledStyle }}
             disabled={!isDepartmentEnabled}
           >
-            {departments.map((d) => (
+            {/* {departments.map((d) => (
               <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
-            ))}
+            ))} */}
           </TextField>
 
           <TextField
@@ -168,9 +168,9 @@ export default function CreateSalesUserAccordion({
             sx={{ flex: "1 1 200px", ...disabledStyle }}
             disabled={!isTeamEnabled}
           >
-            {teams.map((t) => (
+            {/* {teams.map((t) => (
               <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
-            ))}
+            ))} */}
           </TextField>
         </Box>
 
@@ -187,9 +187,9 @@ export default function CreateSalesUserAccordion({
             sx={{ flex: "1 1 200px", ...disabledStyle }}
             disabled={!isManagerEnabled}
           >
-            {filteredManagers.map((m) => (
+            {/* {filteredManagers.map((m) => (
               <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
-            ))}
+            ))} */}
           </TextField>
 
           <TextField
@@ -200,9 +200,9 @@ export default function CreateSalesUserAccordion({
             sx={{ flex: "1 1 200px", ...disabledStyle }}
             disabled={!isSubManagerEnabled}
           >
-            {filteredSubManagers.map((s) => (
+            {/* {filteredSubManagers.map((s) => (
               <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
-            ))}
+            ))} */}
           </TextField>
 
           <TextField
@@ -213,9 +213,9 @@ export default function CreateSalesUserAccordion({
             sx={{ flex: "1 1 200px", ...disabledStyle }}
             disabled={!isLeaderEnabled}
           >
-            {filteredLeaders.map((l) => (
+            {/* {filteredLeaders.map((l) => (
               <MenuItem key={l.id} value={l.id}>{l.name}</MenuItem>
-            ))}
+            ))} */}
           </TextField>
         </Box>
 
