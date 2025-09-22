@@ -25,18 +25,16 @@ export default function CreateSalesUserAccordion({
   const [expanded, setExpanded] = useState(false);
   const [role, setRole] = useState<string>("");
   const [name, setName] = useState("");
-  const [title, setTitle] = useState("");
-  const [departmentId, setDepartmentId] = useState<number | null>(null);
-  const [teamId, setTeamId] = useState<number | null>(null);
-  const [managerId, setManagerId] = useState<number | null>(null);
-  const [subManagerId, setSubManagerId] = useState<number | null>(null);
-  const [leaderId, setLeaderId] = useState<number | null>(null);
+  const [departmentId, setDepartmentId] = useState<string>("");
+  const [teamId, setTeamId] = useState<string>("");
+  const [managerId, setManagerId] = useState<string>("");
+  const [subManagerId, setSubManagerId] = useState<string>("");
+  const [leaderId, setLeaderId] = useState<string>("");
 
-  // --- title ベースで全件フィルタ（ネスト関係は考慮しない） ---
   function findItemsByTitle(items: OrganizationItem[], targetTitle: string): OrganizationItem[] {
     let result: OrganizationItem[] = [];
     function traverse(node: OrganizationItem) {
-      if (node.title === targetTitle) result.push(node);
+      if (node.title === targetTitle && node.exists && node.id !== null) result.push(node);
       if (node.children) node.children.forEach(traverse);
     }
     items.forEach(traverse);
@@ -49,21 +47,18 @@ export default function CreateSalesUserAccordion({
   const filteredSubManagers = findItemsByTitle(organizationData, "係長");
   const filteredLeaders = findItemsByTitle(organizationData, "主任");
 
-  // --- 役職ごとの入力可否 ---
   const isDepartmentEnabled = role !== "";
-  const isTeamEnabled =
-    role === "sub_manager" || role === "leader" || role === "member-none" || role === "member-sub";
+  const isTeamEnabled = role === "sub_manager" || role === "leader" || role.startsWith("member");
   const isManagerEnabled = role === "sub_manager" || role === "leader" || role.startsWith("member");
   const isSubManagerEnabled = role === "leader" || role.startsWith("member");
   const isLeaderEnabled = role.startsWith("member");
 
-  // roleが変わったら不要な入力はクリア
   useEffect(() => {
-    if (!isDepartmentEnabled) setDepartmentId(null);
-    if (!isTeamEnabled) setTeamId(null);
-    if (!isManagerEnabled) setManagerId(null);
-    if (!isSubManagerEnabled) setSubManagerId(null);
-    if (!isLeaderEnabled) setLeaderId(null);
+    if (!isDepartmentEnabled) setDepartmentId("");
+    if (!isTeamEnabled) setTeamId("");
+    if (!isManagerEnabled) setManagerId("");
+    if (!isSubManagerEnabled) setSubManagerId("");
+    if (!isLeaderEnabled) setLeaderId("");
   }, [role]);
 
   const roleToTitleMap: Record<string, string> = {
@@ -80,20 +75,19 @@ export default function CreateSalesUserAccordion({
       role,
       name,
       title: roleToTitleMap[role] || "",
-      department_id: departmentId,
-      team_id: teamId,
-      manager_id: managerId,
-      sub_manager_id: subManagerId,
-      leader_id: leaderId,
+      department_id: departmentId === "" ? null : Number(departmentId),
+      team_id: teamId === "" ? null : Number(teamId),
+      manager_id: managerId === "" ? null : Number(managerId),
+      sub_manager_id: subManagerId === "" ? null : Number(subManagerId),
+      leader_id: leaderId === "" ? null : Number(leaderId),
     });
     setName("");
     setRole("");
-    setTitle("");
-    setDepartmentId(null);
-    setTeamId(null);
-    setManagerId(null);
-    setSubManagerId(null);
-    setLeaderId(null);
+    setDepartmentId("");
+    setTeamId("");
+    setManagerId("");
+    setSubManagerId("");
+    setLeaderId("");
     setExpanded(false);
   };
 
@@ -150,27 +144,33 @@ export default function CreateSalesUserAccordion({
           <TextField
             select
             label="課"
-            value={departmentId ?? ""}
-            onChange={(e) => setDepartmentId(Number(e.target.value))}
+            value={departmentId}
+            onChange={(e) => setDepartmentId(e.target.value)}
             sx={{ flex: "1 1 200px", ...disabledStyle }}
             disabled={!isDepartmentEnabled}
           >
-            {/* {departments.map((d) => (
-              <MenuItem key={d.id} value={d.id}>{d.name}</MenuItem>
-            ))} */}
+            <MenuItem value="">未選択</MenuItem>
+            {departments.map((d) => (
+              <MenuItem key={d.id!} value={String(d.id)}>
+                {d.name}
+              </MenuItem>
+            ))}
           </TextField>
 
           <TextField
             select
             label="係"
-            value={teamId ?? ""}
-            onChange={(e) => setTeamId(Number(e.target.value))}
+            value={teamId}
+            onChange={(e) => setTeamId(e.target.value)}
             sx={{ flex: "1 1 200px", ...disabledStyle }}
             disabled={!isTeamEnabled}
           >
-            {/* {teams.map((t) => (
-              <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
-            ))} */}
+            <MenuItem value="">未選択</MenuItem>
+            {teams.map((t) => (
+              <MenuItem key={t.id!} value={String(t.id)}>
+                {t.name}
+              </MenuItem>
+            ))}
           </TextField>
         </Box>
 
@@ -182,45 +182,54 @@ export default function CreateSalesUserAccordion({
           <TextField
             select
             label="課長"
-            value={managerId ?? ""}
-            onChange={(e) => setManagerId(Number(e.target.value))}
+            value={managerId}
+            onChange={(e) => setManagerId(e.target.value)}
             sx={{ flex: "1 1 200px", ...disabledStyle }}
             disabled={!isManagerEnabled}
           >
-            {/* {filteredManagers.map((m) => (
-              <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
-            ))} */}
+            <MenuItem value="">未選択</MenuItem>
+            {filteredManagers.map((m) => (
+              <MenuItem key={m.id!} value={String(m.id)}>
+                {m.name}
+              </MenuItem>
+            ))}
           </TextField>
 
           <TextField
             select
             label="係長"
-            value={subManagerId ?? ""}
-            onChange={(e) => setSubManagerId(Number(e.target.value))}
+            value={subManagerId}
+            onChange={(e) => setSubManagerId(e.target.value)}
             sx={{ flex: "1 1 200px", ...disabledStyle }}
             disabled={!isSubManagerEnabled}
           >
-            {/* {filteredSubManagers.map((s) => (
-              <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
-            ))} */}
+            <MenuItem value="">未選択</MenuItem>
+            {filteredSubManagers.map((s) => (
+              <MenuItem key={s.id!} value={String(s.id)}>
+                {s.name}
+              </MenuItem>
+            ))}
           </TextField>
 
           <TextField
             select
             label="主任"
-            value={leaderId ?? ""}
-            onChange={(e) => setLeaderId(Number(e.target.value))}
+            value={leaderId}
+            onChange={(e) => setLeaderId(e.target.value)}
             sx={{ flex: "1 1 200px", ...disabledStyle }}
             disabled={!isLeaderEnabled}
           >
-            {/* {filteredLeaders.map((l) => (
-              <MenuItem key={l.id} value={l.id}>{l.name}</MenuItem>
-            ))} */}
+            <MenuItem value="">未選択</MenuItem>
+            {filteredLeaders.map((l) => (
+              <MenuItem key={l.id!} value={String(l.id)}>
+                {l.name}
+              </MenuItem>
+            ))}
           </TextField>
         </Box>
 
         <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
-          <Button variant="contained" onClick={handleSubmit} disabled={!role}>
+          <Button variant="contained" onClick={handleSubmit} disabled={!role || !name}>
             追加
           </Button>
         </Box>

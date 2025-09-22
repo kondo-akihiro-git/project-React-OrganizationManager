@@ -2,13 +2,15 @@
 // - Reactの機能（状態管理やDOM参照）とMUIコンポーネント（Box, Typography）を使う
 // - react-organizational-chartでツリー構造を描画
 // - APIからデータを取得するための関数と型をインポート
+// - メンバー追加用のアコーディオンコンポーネントをインポート
 import { useEffect, useState, useRef } from "react";
 import { Box, Typography } from "@mui/material";
 import { Tree, TreeNode } from "react-organizational-chart";
 import { getSalesAssignment, OrganizationItem } from "../network/getSalesAssignment";
+import CreateSalesUserAccordion from "../dialogs/CreateSalesUserAccordion";
 
 // ========== メインのコンポーネント ========== //
-// SalesPage: 営業部の組織図を表示する画面
+// SalesPage: 営業部の組織図を表示し、メンバー追加機能を提供
 export default function SalesPage() {
   // ========== 状態と参照の定義 ========== //
   // - data: APIから取得した組織データを保持（初期値は空配列）
@@ -172,15 +174,24 @@ export default function SalesPage() {
     );
   };
 
+  // ========== メンバー追加時の処理 ========== //
+  // - アコーディオンから送信されたデータをコンソールに表示（仮実装）
+  const handleCreate = (formData: any) => {
+    console.log("New member data:", formData);
+  };
+
   // ========== 画面全体の描画 ========== //
   // - タイトル「営業部 組織図」を表示
   // - 組織図をスケール調整して表示
-  // - ルートノード（営業部）からツリーを描画
+  // - メンバー追加用のアコーディオンを下部に表示
   return (
     <Box sx={{ padding: 2 }}>
       <Typography variant="h5" sx={{ mb: 2 }}>
         営業部 組織図
       </Typography>
+            <Box sx={{ mt: 2 }}>
+        <CreateSalesUserAccordion onCreate={handleCreate} organizationData={data} />
+      </Box>
       <Box ref={containerRef} sx={{ overflowX: "auto" }}>
         <Box sx={{ transform: `scale(${scale})`, transformOrigin: "top left", minWidth: "100%" }}>
           <Tree label={<Box sx={getRootBoxStyle()}>営業部</Box>}>
