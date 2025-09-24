@@ -37,6 +37,16 @@ export default function UpdateSalesUserDialog({
   const [subManagerId, setSubManagerId] = useState<string>("");
   const [leaderId, setLeaderId] = useState<string>("");
 
+  // ノードをIDで検索
+  const findNodeById = (items: OrganizationItem[], targetId: number): OrganizationItem | null => {
+    for (const item of items) {
+      if (item.id === targetId) return item;
+      const found = findNodeById(item.children, targetId);
+      if (found) return found;
+    }
+    return null;
+  };
+
   // 祖先を正確に取得
   const findAncestors = (items: OrganizationItem[], targetId: number): OrganizationItem[] => {
     const ancestors: OrganizationItem[] = [];
@@ -123,7 +133,7 @@ export default function UpdateSalesUserDialog({
     }
   }, [selectedItem, organizationData]);
 
-  // 選択肢取得
+  // 選択肢取得（exists: falseも含め、exists: trueを先にソート）
   function findItemsByTitle(items: OrganizationItem[], targetTitle: string): OrganizationItem[] {
     let result: OrganizationItem[] = [];
     function traverse(node: OrganizationItem) {
@@ -131,7 +141,8 @@ export default function UpdateSalesUserDialog({
       if (node.children) node.children.forEach(traverse);
     }
     items.forEach(traverse);
-    return result;
+    // exists: trueを先に、exists: falseを後にソート（id順は維持）
+    return result.sort((a, b) => (a.exists === b.exists ? 0 : a.exists ? -1 : 1));
   }
 
   const departments = findItemsByTitle(organizationData, "課");

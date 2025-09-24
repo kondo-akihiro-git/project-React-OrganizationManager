@@ -61,7 +61,7 @@ export default function CreateSalesUserAccordion({
     return "(不明)"; // フォールバック
   };
 
-  // 選択肢取得（exists: falseも含める）
+  // 選択肢取得（exists: falseも含め、exists: trueを先にソート）
   function findItemsByTitle(items: OrganizationItem[], targetTitle: string): OrganizationItem[] {
     let result: OrganizationItem[] = [];
     function traverse(node: OrganizationItem) {
@@ -69,7 +69,8 @@ export default function CreateSalesUserAccordion({
       if (node.children) node.children.forEach(traverse);
     }
     items.forEach(traverse);
-    return result;
+    // exists: trueを先に、exists: falseを後にソート（id順は維持）
+    return result.sort((a, b) => (a.exists === b.exists ? 0 : a.exists ? -1 : 1));
   }
 
   const departments = findItemsByTitle(organizationData, "課");
