@@ -27,30 +27,31 @@ DELETE http://localhost:8000/sales_user/member/60030
 Accept: application/json
 
 
-### 7. 課長なしを削除
+### 5. 副主任を削除
+# - 目的: テストデータ「テスト副主任さん」(id: 60031)を削除。
+# - 期待: sales_member から id: 60031 のレコードが削除。
+# - 注意: メンバーは子レコードを持たないため、単純に削除成功。
+DELETE http://localhost:8000/sales_user/member/60031
+Accept: application/json
+
+### 6. 課長なしを削除
 # - 目的: テストデータ「課長なし」(id: 20006)を削除。
 # - 期待: sales_manager から id: 20006 のレコードが削除、依存する sales_team.manager_id=20006 なども CASCADE で削除。
 # - 注意: 依存レコードがない場合（このテストでは該当なし）、単純に削除成功。
 DELETE http://localhost:8000/sales_user/manager/20006
 Accept: application/json
 
-### 8. 係長なしを削除
+### 7. 係長なしを削除
 # - 目的: テストデータ「係長なし」(id: 40008)を削除。
 # - 期待: sales_sub_manager から id: 40008 のレコードが削除、依存する sales_leader.sub_manager_id=40008 なども CASCADE で削除。
 # - 注意: 依存レコードがない場合（このテストでは該当なし）、単純に削除成功。
 DELETE http://localhost:8000/sales_user/sub_manager/40008
 Accept: application/json
 
-### 9. 主任なしを削除
+### 8. 主任なしを削除
 # - 目的: テストデータ「主任なし」(id: 50011)を削除。
 # - 期待: sales_leader から id: 50011 のレコードが削除、依存する sales_member.leader_id=50011 なども CASCADE で削除。
 # - 注意: 依存レコードがない場合（このテストでは該当なし）、単純に削除成功。
 DELETE http://localhost:8000/sales_user/leader/50011
 Accept: application/json
 
-### 10. 副主任を削除
-# - 目的: テストデータ「テスト副主任さん」(id: 60031)を削除。
-# - 期待: sales_member から id: 60031 のレコードが削除。
-# - 注意: メンバーは子レコードを持たないため、単純に削除成功。
-DELETE http://localhost:8000/sales_user/member/60031
-Accept: application/json

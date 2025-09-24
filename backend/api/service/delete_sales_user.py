@@ -3,19 +3,9 @@ from db.connection.connection import get_connection, release_connection
 async def delete_sales_user(role: str, user_id: int) -> dict:
     conn = await get_connection()
     try:
-        if role == "department":
-            row = await conn.fetchrow(
-                "DELETE FROM sales_department WHERE id = $1 RETURNING id, name, exists",
-                user_id
-            )
-        elif role == "manager":
+        if role == "manager":
             row = await conn.fetchrow(
                 "DELETE FROM sales_manager WHERE id = $1 RETURNING id, name, department_id, exists",
-                user_id
-            )
-        elif role == "team":
-            row = await conn.fetchrow(
-                "DELETE FROM sales_team WHERE id = $1 RETURNING id, name, department_id, manager_id, exists",
                 user_id
             )
         elif role == "sub_manager":

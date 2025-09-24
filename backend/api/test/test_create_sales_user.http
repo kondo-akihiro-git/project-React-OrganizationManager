@@ -68,87 +68,7 @@ Content-Type: application/json
   "leader_id": 50001
 }
 
-### 5. 課なしを追加 (営業部直下)
-# - 目的: 営業部直下に「課なし」を追加（exists: false, name: ""）。
-# - 期待: sales_department に (id: 10005, name: "", exists: false) が登録。
-# - 制約: exists: false の場合、name は空文字（""）または null。
-POST http://localhost:8000/create_sales_user
-Content-Type: application/json
-
-{
-  "id": 10005,
-  "name": "",
-  "role": "department",
-  "exists": false
-}
-
-### 6. 係なしを追加 (営業事務配下)
-# - 目的: 営業事務（id: 10004）、課長なし（id: 20004）配下に「係なし」を追加。
-# - 期待: sales_team に (id: 30007, name: "", department_id: 10004, manager_id: 20004, exists: false) が登録。
-# - 制約: department_id 必須、exists: false の場合、name は空文字または null。
-POST http://localhost:8000/create_sales_user
-Content-Type: application/json
-
-{
-  "id": 30007,
-  "name": "",
-  "role": "team",
-  "exists": false,
-  "department_id": 10004,
-  "manager_id": 20004
-}
-
-### 7. 課長なしを追加 (第二営業課配下)
-# - 目的: 第二営業課（id: 10002）配下に「課長なし」を追加。
-# - 期待: sales_manager に (id: 20006, name: "", department_id: 10002, exists: false) が登録。
-# - 制約: department_id 必須、exists: false の場合、name は空文字または null。
-POST http://localhost:8000/create_sales_user
-Content-Type: application/json
-
-{
-  "id": 20006,
-  "name": "",
-  "role": "manager",
-  "exists": false,
-  "department_id": 10002
-}
-
-### 8. 係長なしを追加 (第二営業課 → トップセール配下)
-# - 目的: 第二営業課（id: 10002）のトップセール（id: 30004）、課長なし（id: 20003）配下に「係長なし」を追加。
-# - 期待: sales_sub_manager に (id: 40008, name: "", department_id: 10002, manager_id: 20003, team_id: 30004, exists: false) が登録。
-# - 制約: department_id 必須、team_id/manager_id/department_id のいずれか1つ以上必須。
-POST http://localhost:8000/create_sales_user
-Content-Type: application/json
-
-{
-  "id": 40008,
-  "name": "",
-  "role": "sub_manager",
-  "exists": false,
-  "department_id": 10002,
-  "manager_id": 20003,
-  "team_id": 30004
-}
-
-### 9. 主任なしを追加 (第三営業課 → 新規開拓配下)
-# - 目的: 第三営業課（id: 10003）の新規開拓（id: 30005）、課長「宮本 和世士」（id: 20002）、係長なし（id: 40005）配下に「主任なし」を追加。
-# - 期待: sales_leader に (id: 50011, name: "", department_id: 10003, manager_id: 20002, team_id: 30005, sub_manager_id: 40005, exists: false) が登録。
-# - 制約: department_id 必須、sub_manager_id/team_id/manager_id/department_id のいずれか1つ以上必須。
-POST http://localhost:8000/create_sales_user
-Content-Type: application/json
-
-{
-  "id": 50011,
-  "name": "",
-  "role": "leader",
-  "exists": false,
-  "department_id": 10003,
-  "manager_id": 20002,
-  "team_id": 30005,
-  "sub_manager_id": 40005
-}
-
-### 10. 副主任を追加 (第一営業課 → SES(BP) → 主任「知念 大貴」の配下)
+### 5. 副主任を追加 (第一営業課 → SES(BP) → 主任「知念 大貴」の配下)
 # - 目的: 第一営業課（id: 10001）のSES(BP)（id: 30002）、課長「佐藤 絵里子」（id: 20001）、係長「作本 薫宏」（id: 40002）、主任「知念 大貴」（id: 50005）配下に副主任「テスト副主任さん」を追加。
 # - 期待: sales_member に (id: 60031, name: "テスト副主任さん", title: "副主任", department_id: 10001, manager_id: 20001, team_id: 30002, sub_manager_id: 40002, leader_id: 50005) が登録。
 # - 制約: name と department_id 必須、leader_id/sub_manager_id/team_id/manager_id/department_id のいずれか1つ以上必須。
@@ -167,3 +87,54 @@ Content-Type: application/json
   "sub_manager_id": 40002,
   "leader_id": 50005
 }
+
+### 6. 課長なしを追加 (第二営業課配下)
+# - 目的: 第二営業課（id: 10002）配下に「課長なし」を追加。
+# - 期待: sales_manager に (id: 20006, name: "", department_id: 10002, exists: false) が登録。
+# - 制約: department_id 必須、exists: false の場合、name は空文字または null。
+POST http://localhost:8000/create_sales_user
+Content-Type: application/json
+
+{
+  "id": 20006,
+  "name": "",
+  "role": "manager",
+  "exists": false,
+  "department_id": 10002
+}
+
+### 7. 係長なしを追加 (第二営業課 → トップセール配下)
+# - 目的: 第二営業課（id: 10002）のトップセール（id: 30004）、課長なし（id: 20003）配下に「係長なし」を追加。
+# - 期待: sales_sub_manager に (id: 40008, name: "", department_id: 10002, manager_id: 20003, team_id: 30004, exists: false) が登録。
+# - 制約: department_id 必須、team_id/manager_id/department_id のいずれか1つ以上必須。
+POST http://localhost:8000/create_sales_user
+Content-Type: application/json
+
+{
+  "id": 40008,
+  "name": "",
+  "role": "sub_manager",
+  "exists": false,
+  "department_id": 10002,
+  "manager_id": 20003,
+  "team_id": 30004
+}
+
+### 8. 主任なしを追加 (第三営業課 → 新規開拓配下)
+# - 目的: 第三営業課（id: 10003）の新規開拓（id: 30005）、課長「宮本 和世士」（id: 20002）、係長なし（id: 40005）配下に「主任なし」を追加。
+# - 期待: sales_leader に (id: 50011, name: "", department_id: 10003, manager_id: 20002, team_id: 30005, sub_manager_id: 40005, exists: false) が登録。
+# - 制約: department_id 必須、sub_manager_id/team_id/manager_id/department_id のいずれか1つ以上必須。
+POST http://localhost:8000/create_sales_user
+Content-Type: application/json
+
+{
+  "id": 50011,
+  "name": "",
+  "role": "leader",
+  "exists": false,
+  "department_id": 10003,
+  "manager_id": 20002,
+  "team_id": 30005,
+  "sub_manager_id": 40005
+}
+
