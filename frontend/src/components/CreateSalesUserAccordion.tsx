@@ -1,4 +1,3 @@
-// frontend/src/dialogs/CreateSalesUserAccordion.tsx
 import { useState, useEffect } from "react";
 import {
   Accordion,
@@ -31,10 +30,42 @@ export default function CreateSalesUserAccordion({
   const [subManagerId, setSubManagerId] = useState<string>("");
   const [leaderId, setLeaderId] = useState<string>("");
 
+  // 祖先を正確に取得
+  const findAncestors = (items: OrganizationItem[], targetId: number): OrganizationItem[] => {
+    const ancestors: OrganizationItem[] = [];
+    function traverse(nodes: OrganizationItem[], currentPath: OrganizationItem[] = []) {
+      for (const node of nodes) {
+        if (node.id === targetId) {
+          ancestors.push(...currentPath);
+          return true;
+        }
+        if (node.children) {
+          if (traverse(node.children, [...currentPath, node])) return true;
+        }
+      }
+      return false;
+    }
+    traverse(organizationData);
+    return ancestors;
+  };
+
+  // 直属の所属名または社員名を取得
+  const findParentName = (items: OrganizationItem[], targetId: number): string => {
+    const ancestors = findAncestors(items, targetId);
+    for (let i = ancestors.length - 1; i >= 0; i--) {
+      const ancestor = ancestors[i];
+      if (ancestor.exists && ancestor.name) {
+        return ancestor.name;
+      }
+    }
+    return "(不明)"; // フォールバック
+  };
+
+  // 選択肢取得（exists: falseも含める）
   function findItemsByTitle(items: OrganizationItem[], targetTitle: string): OrganizationItem[] {
     let result: OrganizationItem[] = [];
     function traverse(node: OrganizationItem) {
-      if (node.title === targetTitle && node.exists && node.id !== null) result.push(node);
+      if (node.title === targetTitle) result.push(node);
       if (node.children) node.children.forEach(traverse);
     }
     items.forEach(traverse);
@@ -151,8 +182,8 @@ export default function CreateSalesUserAccordion({
           >
             <MenuItem value="">未選択</MenuItem>
             {departments.map((d) => (
-              <MenuItem key={d.id!} value={String(d.id)}>
-                {d.name}
+              <MenuItem key={d.id} value={String(d.id)}>
+                {d.name || `課なし（${findParentName(organizationData, d.id)}）`}
               </MenuItem>
             ))}
           </TextField>
@@ -167,8 +198,8 @@ export default function CreateSalesUserAccordion({
           >
             <MenuItem value="">未選択</MenuItem>
             {teams.map((t) => (
-              <MenuItem key={t.id!} value={String(t.id)}>
-                {t.name}
+              <MenuItem key={t.id} value={String(t.id)}>
+                {t.name || `係なし（${findParentName(organizationData, t.id)}）`}
               </MenuItem>
             ))}
           </TextField>
@@ -189,8 +220,8 @@ export default function CreateSalesUserAccordion({
           >
             <MenuItem value="">未選択</MenuItem>
             {filteredManagers.map((m) => (
-              <MenuItem key={m.id!} value={String(m.id)}>
-                {m.name}
+              <MenuItem key={m.id} value={String(m.id)}>
+                {m.name || `課長なし（${findParentName(organizationData, m.id)}）`}
               </MenuItem>
             ))}
           </TextField>
@@ -205,8 +236,8 @@ export default function CreateSalesUserAccordion({
           >
             <MenuItem value="">未選択</MenuItem>
             {filteredSubManagers.map((s) => (
-              <MenuItem key={s.id!} value={String(s.id)}>
-                {s.name}
+              <MenuItem key={s.id} value={String(s.id)}>
+                {s.name || `係長なし（${findParentName(organizationData, s.id)}）`}
               </MenuItem>
             ))}
           </TextField>
@@ -221,8 +252,8 @@ export default function CreateSalesUserAccordion({
           >
             <MenuItem value="">未選択</MenuItem>
             {filteredLeaders.map((l) => (
-              <MenuItem key={l.id!} value={String(l.id)}>
-                {l.name}
+              <MenuItem key={l.id} value={String(l.id)}>
+                {l.name || `主任なし（${findParentName(organizationData, l.id)}）`}
               </MenuItem>
             ))}
           </TextField>
