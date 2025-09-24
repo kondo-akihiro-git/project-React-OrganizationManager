@@ -7,28 +7,33 @@ async def create_sales_user(user: CreateSalesUserRequest) -> dict:
     try:
         if user.role == "department":
             row = await conn.fetchrow(
-                "INSERT INTO sales_department (name) VALUES ($1) RETURNING id, name",
-                user.name,
+                "INSERT INTO sales_department (id, name, exists) VALUES ($1, $2, $3) RETURNING id, name, exists",
+                user.id, user.name, user.exists
             )
         elif user.role == "manager":
             row = await conn.fetchrow(
-                "INSERT INTO sales_manager (name, department_id) VALUES ($1, $2) RETURNING id, name, department_id",
-                user.name, user.department_id
+                "INSERT INTO sales_manager (id, name, department_id, exists) VALUES ($1, $2, $3, $4) RETURNING id, name, department_id, exists",
+                user.id, user.name, user.department_id, user.exists
+            )
+        elif user.role == "team":
+            row = await conn.fetchrow(
+                "INSERT INTO sales_team (id, name, department_id, manager_id, exists) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, department_id, manager_id, exists",
+                user.id, user.name, user.department_id, user.manager_id, user.exists
             )
         elif user.role == "sub_manager":
             row = await conn.fetchrow(
-                "INSERT INTO sales_sub_manager (name, team_id, manager_id, department_id) VALUES ($1, $2, $3, $4) RETURNING id, name, team_id, manager_id, department_id",
-                user.name, user.team_id, user.manager_id, user.department_id
+                "INSERT INTO sales_sub_manager (id, name, team_id, manager_id, department_id, exists) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, team_id, manager_id, department_id, exists",
+                user.id, user.name, user.team_id, user.manager_id, user.department_id, user.exists
             )
         elif user.role == "leader":
             row = await conn.fetchrow(
-                "INSERT INTO sales_leader (name, sub_manager_id, team_id, manager_id, department_id) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, sub_manager_id, team_id, manager_id, department_id",
-                user.name, user.sub_manager_id, user.team_id, user.manager_id, user.department_id
+                "INSERT INTO sales_leader (id, name, sub_manager_id, team_id, manager_id, department_id, exists) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, sub_manager_id, team_id, manager_id, department_id, exists",
+                user.id, user.name, user.sub_manager_id, user.team_id, user.manager_id, user.department_id, user.exists
             )
         elif user.role == "member":
             row = await conn.fetchrow(
-                "INSERT INTO sales_member (name, title, leader_id, sub_manager_id, team_id, manager_id, department_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, title, leader_id, sub_manager_id, team_id, manager_id, department_id",
-                user.name, user.title or "メンバー", user.leader_id, user.sub_manager_id, user.team_id, user.manager_id, user.department_id
+                "INSERT INTO sales_member (id, name, title, leader_id, sub_manager_id, team_id, manager_id, department_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, title, leader_id, sub_manager_id, team_id, manager_id, department_id",
+                user.id, user.name, user.title or "メンバー", user.leader_id, user.sub_manager_id, user.team_id, user.manager_id, user.department_id
             )
         else:
             raise ValueError("Invalid role")
