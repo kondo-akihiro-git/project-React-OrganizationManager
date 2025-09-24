@@ -1,4 +1,5 @@
-from api.schema.user_schema import CreateSalesUserRequest
+# backend/api/service/create_sales_user.py
+from api.schema.user_shema import CreateSalesUserRequest
 from db.connection.connection import get_connection, release_connection
 
 async def create_sales_user(user: CreateSalesUserRequest) -> dict:

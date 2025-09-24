@@ -1,0 +1,131 @@
+### 1. 課長を更新 (名前と課を変更)
+# - 目的: 課長「テスト課長さん」(id: 20005)の名前を「テスト課長2さん」に変更し、第二営業課(id: 10002)に移動。
+# - 期待: sales_manager の id: 20005 が (name: "テスト課長2さん", department_id: 10002, exists: true) に更新。
+# - 制約: department_id 必須、exists: true の場合 name 必須。
+PUT http://localhost:8000/sales_user/manager/20005
+Content-Type: application/json
+
+{
+  "name": "テスト課長2さん",
+  "role": "manager",
+  "exists": true,
+  "department_id": 10002
+}
+
+### 2. 係長を更新 (名前とteam_idを変更)
+# - 目的: 係長「テスト係長さん」(id: 40007)の名前を「テスト係長2さん」に変更し、SES(BP)(id: 30002)に移動。
+# - 期待: sales_sub_manager の id: 40007 が (name: "テスト係長2さん", department_id: 10001, manager_id: 20001, team_id: 30002, exists: true) に更新。
+# - 制約: department_id 必須、team_id/manager_id/department_id のいずれか1つ以上必須。
+PUT http://localhost:8000/sales_user/sub_manager/40007
+Content-Type: application/json
+
+{
+  "name": "テスト係長2さん",
+  "role": "sub_manager",
+  "exists": true,
+  "department_id": 10001,
+  "manager_id": 20001,
+  "team_id": 30002
+}
+
+### 3. 主任を更新 (名前とsub_manager_idを変更)
+# - 目的: 主任「テスト主任さん」(id: 50010)の名前を「テスト主任2さん」に変更し、係長「作本 薫宏」(id: 40002)配下に移動。
+# - 期待: sales_leader の id: 50010 が (name: "テスト主任2さん", department_id: 10001, manager_id: 20001, team_id: 30001, sub_manager_id: 40002, exists: true) に更新。
+# - 制約: department_id 必須、sub_manager_id/team_id/manager_id/department_id のいずれか1つ以上必須。
+PUT http://localhost:8000/sales_user/leader/50010
+Content-Type: application/json
+
+{
+  "name": "テスト主任2さん",
+  "role": "leader",
+  "exists": true,
+  "department_id": 10001,
+  "manager_id": 20001,
+  "team_id": 30001,
+  "sub_manager_id": 40002
+}
+
+### 4. メンバーを更新 (名前とtitleを変更)
+# - 目的: メンバー「テストメンバーさん」(id: 60030)の名前を「テストメンバー2さん」に変更し、titleを「副主任」に変更。
+# - 期待: sales_member の id: 60030 が (name: "テストメンバー2さん", title: "副主任", department_id: 10001, manager_id: 20001, team_id: 30001, sub_manager_id: 40001, leader_id: 50001) に更新。
+# - 制約: name と department_id 必須、leader_id/sub_manager_id/team_id/manager_id/department_id のいずれか1つ以上必須。
+PUT http://localhost:8000/sales_user/member/60030
+Content-Type: application/json
+
+{
+  "name": "テストメンバー2さん",
+  "title": "副主任",
+  "role": "member",
+  "exists": true,
+  "department_id": 10001,
+  "manager_id": 20001,
+  "team_id": 30001,
+  "sub_manager_id": 40001,
+  "leader_id": 50001
+}
+
+### 5. 課長なしを更新 (exists: true, 名前を追加)
+# - 目的: 「課長なし」(id: 20006)を「テスト課長3さん」に変更し、exists: true に更新。
+# - 期待: sales_manager の id: 20006 が (name: "テスト課長3さん", department_id: 10002, exists: true) に更新。
+# - 制約: department_id 必須、exists: true の場合 name 必須。
+PUT http://localhost:8000/sales_user/manager/20006
+Content-Type: application/json
+
+{
+  "name": "テスト課長3さん",
+  "role": "manager",
+  "exists": true,
+  "department_id": 10002
+}
+
+### 6. 係長なしを更新 (exists: true, 名前を追加)
+# - 目的: 「係長なし」(id: 40008)を「テスト係長3さん」に変更し、exists: true に更新。
+# - 期待: sales_sub_manager の id: 40008 が (name: "テスト係長3さん", department_id: 10002, manager_id: 20003, team_id: 30004, exists: true) に更新。
+# - 制約: department_id 必須、team_id/manager_id/department_id のいずれか1つ以上必須。
+PUT http://localhost:8000/sales_user/sub_manager/40008
+Content-Type: application/json
+
+{
+  "name": "テスト係長3さん",
+  "role": "sub_manager",
+  "exists": true,
+  "department_id": 10002,
+  "manager_id": 20003,
+  "team_id": 30004
+}
+
+### 7. 主任なしを更新 (exists: true, 名前を追加)
+# - 目的: 「主任なし」(id: 50011)を「テスト主任3さん」に変更し、exists: true に更新。
+# - 期待: sales_leader の id: 50011 が (name: "テスト主任3さん", department_id: 10003, manager_id: 20002, team_id: 30005, sub_manager_id: 40005, exists: true) に更新。
+# - 制約: department_id 必須、sub_manager_id/team_id/manager_id/department_id のいずれか1つ以上必須。
+PUT http://localhost:8000/sales_user/leader/50011
+Content-Type: application/json
+
+{
+  "name": "テスト主任3さん",
+  "role": "leader",
+  "exists": true,
+  "department_id": 10003,
+  "manager_id": 20002,
+  "team_id": 30005,
+  "sub_manager_id": 40005
+}
+
+### 8. 副主任を更新 (titleをメンバー変更)
+# - 目的: 副主任「テスト副主任さん」(id: 60031)の名前を「テストメンバー3さん」に変更し、titleを「メンバー」に変更。
+# - 期待: sales_member の id: 60031 が (name: "テストメンバー3さん", title: "メンバー", department_id: 10001, manager_id: 20001, team_id: 30002, sub_manager_id: 40002, leader_id: 50005) に更新。
+# - 制約: name と department_id 必須、leader_id/sub_manager_id/team_id/manager_id/department_id のいずれか1つ以上必須。
+PUT http://localhost:8000/sales_user/member/60031
+Content-Type: application/json
+
+{
+  "name": "テストメンバー3さん",
+  "title": "メンバー",
+  "role": "member",
+  "exists": true,
+  "department_id": 10001,
+  "manager_id": 20001,
+  "team_id": 30002,
+  "sub_manager_id": 40002,
+  "leader_id": 50005
+}
