@@ -6,7 +6,7 @@ import mockData from "../network/mock/get_sales_assignment.json";
 // データの型定義（OrganizationItem）
 // ======================================================
 export interface OrganizationItem {
-  id: number | null;
+  id: number;
   name: string;
   title: string;
   exists: boolean;
