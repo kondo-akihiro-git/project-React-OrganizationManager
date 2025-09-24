@@ -1,24 +1,13 @@
-# backend/api/service/create_sales_user.py
-from api.schema.user_shema import CreateSalesUserRequest
+from api.schema.user_schema import CreateSalesUserRequest
 from db.connection.connection import get_connection, release_connection
 
 async def create_sales_user(user: CreateSalesUserRequest) -> dict:
     conn = await get_connection()
     try:
-        if user.role == "department":
-            row = await conn.fetchrow(
-                "INSERT INTO sales_department (id, name, exists) VALUES ($1, $2, $3) RETURNING id, name, exists",
-                user.id, user.name, user.exists
-            )
-        elif user.role == "manager":
+        if user.role == "manager":
             row = await conn.fetchrow(
                 "INSERT INTO sales_manager (id, name, department_id, exists) VALUES ($1, $2, $3, $4) RETURNING id, name, department_id, exists",
                 user.id, user.name, user.department_id, user.exists
-            )
-        elif user.role == "team":
-            row = await conn.fetchrow(
-                "INSERT INTO sales_team (id, name, department_id, manager_id, exists) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, department_id, manager_id, exists",
-                user.id, user.name, user.department_id, user.manager_id, user.exists
             )
         elif user.role == "sub_manager":
             row = await conn.fetchrow(
