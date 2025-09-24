@@ -5,7 +5,6 @@ import { Tree, TreeNode } from "react-organizational-chart";
 import { getSalesAssignment, OrganizationItem } from "../network/getSalesAssignment";
 import CreateSalesUserAccordion from "../components/CreateSalesUserAccordion";
 import UpdateSalesUserDialog from "../components/UpdateSalesUserDialog";
-import UpdateSalesSectionDialog from "../components/UpdateSalesSectionDialog";
 
 // SalesPage: 営業部の組織図を表示し、メンバー追加機能を提供
 export default function SalesPage() {
@@ -13,7 +12,6 @@ export default function SalesPage() {
   const [scale, setScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [sectionDialogOpen, setSectionDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<OrganizationItem | null>(null);
 
   // データ取得
@@ -39,7 +37,12 @@ export default function SalesPage() {
     padding: 1,
     border: "1px solid #1976d2",
     borderRadius: 1,
-    backgroundColor: item.title === "メンバー" || item.title === "副主任" ? "#e3f2fd" : "#bbdefb",
+    backgroundColor:
+      item.title === "課" || item.title === "係"
+        ? "#d3d3d3" // 課と係はグレー
+        : item.title === "メンバー" || item.title === "副主任"
+        ? "#e3f2fd" // メンバーと副主任
+        : "#bbdefb", // 課長、係長、主任
     textAlign: "center" as const,
     fontSize: "0.75rem",
   });
@@ -50,9 +53,9 @@ export default function SalesPage() {
 
   const getRootBoxStyle = () => ({
     padding: 1,
-    border: "2px solid #1976d2",
+    border: "1px solid #1976d2",
     borderRadius: 1,
-    backgroundColor: "#90caf9",
+    backgroundColor: "#d3d3d3",
     textAlign: "center" as const,
   });
 
@@ -65,7 +68,6 @@ export default function SalesPage() {
     gap: 1,
   });
 
-  // *** 修正: id !== null 条件を削除 ***
   const renderMembers = (members: OrganizationItem[]) => (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mt: 0.5 }}>
       {members.map((member) => (
@@ -84,7 +86,6 @@ export default function SalesPage() {
     </Box>
   );
 
-  // *** 修正: id !== null 条件と仮ID生成を削除 ***
   const renderItem = (item: OrganizationItem) => {
     const members = item.children.filter((child) => child.title === "メンバー" || child.title === "副主任");
     const subItems = item.children.filter((child) => child.title !== "メンバー" && child.title !== "副主任");
@@ -103,10 +104,9 @@ export default function SalesPage() {
         sx={{ ...getBoxStyle(item), ...getTextColor(item) }}
         onDoubleClick={(e) => {
           e.stopPropagation();
-          setSelectedItem(item);
-          if (item.title === "課" || item.title === "係") {
-            setSectionDialogOpen(true);
-          } else {
+          // 課と係のダブルクリックは無効化
+          if (item.title !== "課" && item.title !== "係") {
+            setSelectedItem(item);
             setDialogOpen(true);
           }
         }}
@@ -165,17 +165,8 @@ export default function SalesPage() {
     console.log("Updated member data:", formData);
   };
 
-  // *** 修正: 削除ハンドラの型を修正 ***
   const handleDelete = (id: number, role: string) => {
     console.log(`Delete member: id=${id}, role=${role}`);
-  };
-
-  const handleSectionUpdate = (formData: { id: number; name: string; title: string }) => {
-    console.log("Updated section data:", formData);
-  };
-
-  const handleSectionDelete = (id: number, title: string) => {
-    console.log(`Delete section: id=${id}, title=${title}`);
   };
 
   return (
@@ -200,13 +191,6 @@ export default function SalesPage() {
         onDelete={handleDelete}
         selectedItem={selectedItem}
         organizationData={data}
-      />
-      <UpdateSalesSectionDialog
-        open={sectionDialogOpen}
-        onClose={() => setSectionDialogOpen(false)}
-        onUpdate={handleSectionUpdate}
-        onDelete={handleSectionDelete}
-        selectedItem={selectedItem}
       />
     </Box>
   );

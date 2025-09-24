@@ -37,23 +37,32 @@ export default function UpdateSalesUserDialog({
   const [subManagerId, setSubManagerId] = useState<string>("");
   const [leaderId, setLeaderId] = useState<string>("");
 
-  // 全祖先を探索
+  // ノードをIDで検索
+  const findNodeById = (items: OrganizationItem[], targetId: number): OrganizationItem | null => {
+    for (const item of items) {
+      if (item.id === targetId) return item;
+      const found = findNodeById(item.children, targetId);
+      if (found) return found;
+    }
+    return null;
+  };
+
+  // 祖先を正確に取得
   const findAncestors = (items: OrganizationItem[], targetId: number): OrganizationItem[] => {
     const ancestors: OrganizationItem[] = [];
-    function traverse(nodes: OrganizationItem[], parentPath: OrganizationItem[] = []) {
+    function traverse(nodes: OrganizationItem[], currentPath: OrganizationItem[] = []) {
       for (const node of nodes) {
         if (node.id === targetId) {
-          ancestors.push(...parentPath);
-          ancestors.push(node);
+          ancestors.push(...currentPath);
           return true;
         }
         if (node.children) {
-          if (traverse(node.children, [...parentPath, node])) return true;
+          if (traverse(node.children, [...currentPath, node])) return true;
         }
       }
       return false;
     }
-    traverse(items);
+    traverse(organizationData);
     return ancestors;
   };
 
@@ -70,9 +79,11 @@ export default function UpdateSalesUserDialog({
       };
       setRole(roleMap[selectedItem.title] || "");
 
-      // 祖先から所属を設定
+      // 祖先を取得
       const ancestors = findAncestors(organizationData, selectedItem.id);
       let deptId = "", tmId = "", mgrId = "", subMgrId = "", ldrId = "";
+      
+      // 選択ノードの所属を特定
       for (const ancestor of ancestors) {
         if (ancestor.title === "課") deptId = String(ancestor.id);
         else if (ancestor.title === "係") tmId = String(ancestor.id);
@@ -80,6 +91,32 @@ export default function UpdateSalesUserDialog({
         else if (ancestor.title === "係長") subMgrId = String(ancestor.id);
         else if (ancestor.title === "主任") ldrId = String(ancestor.id);
       }
+
+      // 選択ノードの直属上司を特定
+      const parent = ancestors[ancestors.length - 1];
+      if (parent) {
+        if (parent.title === "課長") mgrId = String(parent.id);
+        else if (parent.title === "係長") subMgrId = String(parent.id);
+        else if (parent.title === "主任") ldrId = String(parent.id);
+        else if (parent.title === "係") tmId = String(parent.id);
+        else if (parent.title === "課") deptId = String(parent.id);
+
+        // さらに上の祖先を確認
+        const grandParent = ancestors[ancestors.length - 2];
+        if (grandParent) {
+          if (grandParent.title === "課" && !deptId) deptId = String(grandParent.id);
+          else if (grandParent.title === "課長" && !mgrId) mgrId = String(grandParent.id);
+          else if (grandParent.title === "係" && !tmId) tmId = String(grandParent.id);
+          else if (grandParent.title === "係長" && !subMgrId) subMgrId = String(grandParent.id);
+
+          const greatGrandParent = ancestors[ancestors.length - 3];
+          if (greatGrandParent) {
+            if (greatGrandParent.title === "課" && !deptId) deptId = String(greatGrandParent.id);
+            else if (greatGrandParent.title === "課長" && !mgrId) mgrId = String(greatGrandParent.id);
+          }
+        }
+      }
+
       setDepartmentId(deptId);
       setTeamId(tmId);
       setManagerId(mgrId);
