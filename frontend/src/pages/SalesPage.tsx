@@ -189,7 +189,7 @@ export default function SalesPage() {
       <Typography variant="h5" sx={{ mb: 2 }}>
         営業部 組織図
       </Typography>
-            <Box sx={{ mt: 2 }}>
+            <Box sx={{ mt: 2, mb: 2 }}>
         <CreateSalesUserAccordion onCreate={handleCreate} organizationData={data} />
       </Box>
       <Box ref={containerRef} sx={{ overflowX: "auto" }}>

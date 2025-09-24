@@ -99,12 +99,12 @@ export default function CreateSalesUserAccordion({
   return (
     <Accordion expanded={expanded} onChange={() => setExpanded(!expanded)}>
       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-        <Typography>営業メンバー追加</Typography>
+        <Typography>営業部社員追加</Typography>
       </AccordionSummary>
       <AccordionDetails>
         {/* 1. メンバー名 */}
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
-          1. 追加するメンバー名を入力してください
+          1. 追加する社員名を入力してください
         </Typography>
         <Box sx={{ display: "flex", gap: 1.5, mb: 2 }}>
           <TextField
@@ -117,7 +117,7 @@ export default function CreateSalesUserAccordion({
 
         {/* 2. 役職 */}
         <Typography variant="subtitle1" sx={{ mb: 1 }}>
-          2. 追加するメンバーの役職を入力してください
+          2. 追加する社員の役職を入力してください
         </Typography>
         <Box sx={{ display: "flex", gap: 1.5, mb: 2 }}>
           <TextField
