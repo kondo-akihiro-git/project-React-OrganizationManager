@@ -1,3 +1,4 @@
+// frontend/src/components/CreateSalesUserAccordion.tsx
 import { useState, useEffect } from "react";
 import {
   Accordion,
