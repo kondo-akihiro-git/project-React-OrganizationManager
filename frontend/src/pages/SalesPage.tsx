@@ -5,6 +5,7 @@ import { Tree, TreeNode } from "react-organizational-chart";
 import { getSalesAssignment, OrganizationItem } from "../network/getSalesAssignment";
 import CreateSalesUserAccordion from "../components/CreateSalesUserAccordion";
 import UpdateSalesUserDialog from "../components/UpdateSalesUserDialog";
+import { createSalesAssignment } from "../network/createSalesAssignment";
 
 // SalesPage: 営業部の組織図を表示し、メンバー追加機能を提供
 export default function SalesPage() {
@@ -157,9 +158,18 @@ export default function SalesPage() {
     );
   };
 
-  const handleCreate = (formData: any) => {
-    console.log("New member data:", formData);
-  };
+const handleCreate = async (formData: any) => {
+  try {
+    const result = formData
+    // const result = await createSalesAssignment(formData);
+    console.log("Created:", result);
+    // 再取得して組織図をリフレッシュ
+    const updated = await getSalesAssignment();
+    setData(updated);
+  } catch (error) {
+    alert("作成に失敗しました");
+  }
+};
 
   const handleUpdate = (formData: any) => {
     console.log("Updated member data:", formData);

@@ -1,7 +1,5 @@
 # backend/api/service/create_sales_user.py
 from api.schema.user_shema import CreateSalesUserRequest
-# backend/api/service/create_sales_user.py
-from api.schema.user_shema import CreateSalesUserRequest
 from db.connection.connection import get_connection, release_connection
 
 ROLE_ID_RANGE = {
@@ -51,7 +49,7 @@ async def create_sales_user(user: CreateSalesUserRequest) -> dict:
         elif user.role == "member":
             row = await conn.fetchrow(
                 "INSERT INTO sales_member (id, name, title, leader_id, sub_manager_id, team_id, manager_id, department_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, name, title, leader_id, sub_manager_id, team_id, manager_id, department_id",
-                user.id, user.name, user.title or "メンバー", user.leader_id, user.sub_manager_id, user.team_id, user.manager_id, user.department_id
+                user.id, user.name, user.title, user.leader_id, user.sub_manager_id, user.team_id, user.manager_id, user.department_id
             )
         else:
             raise ValueError("Invalid role")

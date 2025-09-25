@@ -7,6 +7,7 @@ Content-Type: application/json
 
 {
   "name": "テスト課長さん",
+  "title": "課長",
   "role": "manager",
   "exists": true,
   "department_id": 10001
@@ -21,6 +22,7 @@ Content-Type: application/json
 
 {
   "name": "テスト係長さん",
+  "title": "係長",
   "role": "sub_manager",
   "exists": true,
   "department_id": 10001,
@@ -37,6 +39,7 @@ Content-Type: application/json
 
 {
   "name": "テスト主任さん",
+  "title": "主任",
   "role": "leader",
   "exists": true,
   "department_id": 10001,
@@ -92,6 +95,7 @@ Content-Type: application/json
 
 {
   "name": "",
+  "title": "課長",
   "role": "manager",
   "exists": false,
   "department_id": 10002
@@ -106,6 +110,7 @@ Content-Type: application/json
 
 {
   "name": "",
+  "title": "係長",
   "role": "sub_manager",
   "exists": false,
   "department_id": 10002,
@@ -122,6 +127,7 @@ Content-Type: application/json
 
 {
   "name": "",
+  "title": "主任",
   "role": "leader",
   "exists": false,
   "department_id": 10003,
@@ -129,4 +135,3 @@ Content-Type: application/json
   "team_id": 30005,
   "sub_manager_id": 40005
 }
-

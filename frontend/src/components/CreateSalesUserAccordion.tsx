@@ -9,6 +9,8 @@ import {
   MenuItem,
   Box,
   Button,
+  FormControlLabel,
+  Checkbox,
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { OrganizationItem } from "../network/getSalesAssignment";
@@ -25,6 +27,7 @@ export default function CreateSalesUserAccordion({
   const [expanded, setExpanded] = useState(false);
   const [role, setRole] = useState<string>("");
   const [name, setName] = useState("");
+  const [exists, setExists] = useState(true);
   const [departmentId, setDepartmentId] = useState<string>("");
   const [teamId, setTeamId] = useState<string>("");
   const [managerId, setManagerId] = useState<string>("");
@@ -102,12 +105,13 @@ export default function CreateSalesUserAccordion({
     "member-sub": "副主任",
   };
 
-  const handleSubmit = () => {
-    if (!name || !role) return;
+const handleSubmit = () => {
+    if (!role) return;
     onCreate({
       role,
-      name,
-      title: roleToTitleMap[role] || "",
+      name: exists ? name : "",
+      title: roleToTitleMap[role],
+      exists,
       department_id: departmentId === "" ? null : Number(departmentId),
       team_id: teamId === "" ? null : Number(teamId),
       manager_id: managerId === "" ? null : Number(managerId),
@@ -116,6 +120,7 @@ export default function CreateSalesUserAccordion({
     });
     setName("");
     setRole("");
+    setExists(true);
     setDepartmentId("");
     setTeamId("");
     setManagerId("");
@@ -145,6 +150,19 @@ export default function CreateSalesUserAccordion({
             value={name}
             onChange={(e) => setName(e.target.value)}
             sx={{ flex: "1 1 200px", ...disabledStyle }}
+            disabled={!exists}
+          />
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={!exists}
+                onChange={(e) => {
+                  setExists(!e.target.checked);
+                  if (e.target.checked) setName("");
+                }}
+              />
+            }
+            label="あとで設定する"
           />
         </Box>
 
@@ -262,7 +280,11 @@ export default function CreateSalesUserAccordion({
         </Box>
 
         <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
-          <Button variant="contained" onClick={handleSubmit} disabled={!role || !name}>
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={!role || (exists && !name)}
+          >
             追加
           </Button>
         </Box>
