@@ -45,14 +45,4 @@ class CreateSalesUserRequest(BaseModel):
                 raise ValueError("department_id is required for member")
             if not (self.leader_id or self.sub_manager_id or self.team_id or self.manager_id or self.department_id):
                 raise ValueError("At least one of leader_id, sub_manager_id, team_id, manager_id, or department_id must be provided for member")
-        # ID範囲のバリデーション
-        if self.id is not None:
-            if self.role == "manager" and not (20001 <= self.id < 30000):
-                raise ValueError("manager id must be in range 20001-29999")
-            elif self.role == "sub_manager" and not (40001 <= self.id < 50000):
-                raise ValueError("sub_manager id must be in range 40001-49999")
-            elif self.role == "leader" and not (50001 <= self.id < 60000):
-                raise ValueError("leader id must be in range 50001-59999")
-            elif self.role == "member" and not (60001 <= self.id < 70000):
-                raise ValueError("member id must be in range 60001-69999")
         return self

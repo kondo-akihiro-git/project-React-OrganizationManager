@@ -6,7 +6,6 @@ POST http://localhost:8000/create_sales_user
 Content-Type: application/json
 
 {
-  "id": 20005,
   "name": "テスト課長さん",
   "role": "manager",
   "exists": true,
@@ -21,7 +20,6 @@ POST http://localhost:8000/create_sales_user
 Content-Type: application/json
 
 {
-  "id": 40007,
   "name": "テスト係長さん",
   "role": "sub_manager",
   "exists": true,
@@ -38,7 +36,6 @@ POST http://localhost:8000/create_sales_user
 Content-Type: application/json
 
 {
-  "id": 50010,
   "name": "テスト主任さん",
   "role": "leader",
   "exists": true,
@@ -56,7 +53,6 @@ POST http://localhost:8000/create_sales_user
 Content-Type: application/json
 
 {
-  "id": 60030,
   "name": "テストメンバーさん",
   "title": "メンバー",
   "role": "member",
@@ -76,7 +72,6 @@ POST http://localhost:8000/create_sales_user
 Content-Type: application/json
 
 {
-  "id": 60031,
   "name": "テスト副主任さん",
   "title": "副主任",
   "role": "member",
@@ -96,7 +91,6 @@ POST http://localhost:8000/create_sales_user
 Content-Type: application/json
 
 {
-  "id": 20006,
   "name": "",
   "role": "manager",
   "exists": false,
@@ -111,7 +105,6 @@ POST http://localhost:8000/create_sales_user
 Content-Type: application/json
 
 {
-  "id": 40008,
   "name": "",
   "role": "sub_manager",
   "exists": false,
@@ -128,7 +121,6 @@ POST http://localhost:8000/create_sales_user
 Content-Type: application/json
 
 {
-  "id": 50011,
   "name": "",
   "role": "leader",
   "exists": false,
